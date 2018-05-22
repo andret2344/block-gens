@@ -15,7 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class atsStoneGenerator extends JavaPlugin {
-    private static File dataFolder, file;
+    private File file;
+    private final Listener listener = new StonePlace(this);
 
     private final ItemStack stoneGenerator = new ItemStack(Material.SPONGE);
     private final List<Block> blocks = new ArrayList<>();
@@ -23,8 +24,7 @@ public class atsStoneGenerator extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        atsStoneGenerator.file = new File(getDataFolder(), "list.tmp");
-        atsStoneGenerator.dataFolder = getDataFolder();
+        file = new File(getDataFolder(), "list.tmp");
         ItemMeta im = stoneGenerator.getItemMeta();
         im.setDisplayName(getConfig().getString("stone.name").replace("&", "§"));
         im.setLore(Arrays.asList(getConfig().getString("stone.lore").replace("&", "§").split("\r")));
@@ -37,12 +37,12 @@ public class atsStoneGenerator extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (!atsStoneGenerator.dataFolder.exists()) {
-            atsStoneGenerator.dataFolder.mkdir();
+        if (!getDataFolder().exists()) {
+            getDataFolder().mkdir();
         }
         try {
-            if (!atsStoneGenerator.file.exists() && blocks.size() != 0) {
-                atsStoneGenerator.file.createNewFile();
+            if (!file.exists() && blocks.size() != 0) {
+                file.createNewFile();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -54,7 +54,7 @@ public class atsStoneGenerator extends JavaPlugin {
 
     private void save(String message) {
         try {
-            PrintWriter pw = new PrintWriter(new FileWriter(atsStoneGenerator.file, true));
+            PrintWriter pw = new PrintWriter(new FileWriter(file, true));
             pw.println(message);
             pw.flush();
             pw.close();
@@ -65,16 +65,16 @@ public class atsStoneGenerator extends JavaPlugin {
 
     private void load() {
         try {
-            if (atsStoneGenerator.file.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(atsStoneGenerator.file));
+            if (file.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
                 String line = "";
                 while ((line = reader.readLine()) != null) {
                     String[] s = line.split(":");
-                    Location l = new Location(atsStoneGenerator.instance.getServer().getWorld(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]));
+                    Location l = new Location(getServer().getWorld(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]));
                     blocks.add(l.getBlock());
                 }
                 reader.close();
-                atsStoneGenerator.file.delete();
+                file.delete();
             }
         } catch (Exception ex) {
             ex.printStackTrace();

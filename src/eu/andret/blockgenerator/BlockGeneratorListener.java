@@ -1,4 +1,4 @@
-package eu.andret.atsstonegenerator;
+package eu.andret.blockgenerator;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -8,18 +8,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
+public class BlockGeneratorListener implements Listener {
+    private final atsBlockGenerator plugin;
 
-public class StonePlace implements Listener {
-    private final List<Block> list;
-    private final Plugin plugin;
-
-    public StonePlace(Plugin plugin) {
+    public BlockGeneratorListener(atsBlockGenerator plugin) {
         this.plugin = plugin;
-        list = plugin.getBlocks();
-        getServer().getPluginManager().registerEvents(this, plugin);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -30,29 +25,29 @@ public class StonePlace implements Listener {
         if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName() == null) {
             return;
         }
-        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals(plugin.getStoneGenerator().getItemMeta().getDisplayName())) {
-            list.add(e.getBlock());
-            e.getBlock().getLocation().add(0, 1, 0).getBlock().setType(Material.STONE);
+        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals(plugin.getGenerator().getItemMeta().getDisplayName())) {
+            plugin.getBlocks().add(e.getBlock());
+            e.getBlock().getLocation().add(0, 1, 0).getBlock().setType(plugin.getGenerated());
         }
     }
 
     @EventHandler
     public void destroy(BlockBreakEvent e) {
         Block brokenBlock = e.getBlock();
-        for (Block block : list) {
+        for (Block block : plugin.getBlocks()) {
             if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
                 int time = plugin.getConfig().getInt("regen-delay");
                 Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                     synchronized (brokenBlock) {
-                        brokenBlock.setType(Material.STONE);
+                        brokenBlock.setType(plugin.getGenerated());
                     }
                 }, time);
             } else if (brokenBlock.equals(block)) {
-                list.remove(brokenBlock);
+                plugin.getBlocks().remove(brokenBlock);
                 e.setCancelled(true);
                 brokenBlock.setType(Material.AIR);
                 if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
-                    brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), new ItemStack(plugin.getStoneGenerator()));
+                    brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), plugin.getGenerator());
                 }
                 return;
             }

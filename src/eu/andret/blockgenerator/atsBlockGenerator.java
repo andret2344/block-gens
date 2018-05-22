@@ -1,4 +1,4 @@
-package eu.andret.atsstonegenerator;
+package eu.andret.blockgenerator;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,22 +14,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class atsStoneGenerator extends JavaPlugin {
+public class atsBlockGenerator extends JavaPlugin {
     private File file;
-    private final Listener listener = new StonePlace(this);
 
-    private final ItemStack stoneGenerator = new ItemStack(Material.SPONGE);
+    private ItemStack generator;
+    private Material generated;
     private final List<Block> blocks = new ArrayList<>();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        new BlockGeneratorListener(this);
         file = new File(getDataFolder(), "list.tmp");
-        ItemMeta im = stoneGenerator.getItemMeta();
+        generator = new ItemStack(Material.getMaterial(getConfig().getString("material.generator", "SPONGE")));
+        ItemMeta im = generator.getItemMeta();
         im.setDisplayName(getConfig().getString("stone.name").replace("&", "§"));
         im.setLore(Arrays.asList(getConfig().getString("stone.lore").replace("&", "§").split("\r")));
-        stoneGenerator.setItemMeta(im);
-        ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), stoneGenerator);
+        generated = Material.getMaterial(getConfig().getString("material.generated", "STONE"));
+        generator.setItemMeta(im);
+        ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), generator);
         shapedRecipe.shape("@@@", "@#@", "@@@").setIngredient('@', Material.STONE).setIngredient('#', Material.PISTON_BASE);
         getServer().addRecipe(shapedRecipe);
         load();
@@ -37,9 +40,6 @@ public class atsStoneGenerator extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (!getDataFolder().exists()) {
-            getDataFolder().mkdir();
-        }
         try {
             if (!file.exists() && blocks.size() != 0) {
                 file.createNewFile();
@@ -81,11 +81,15 @@ public class atsStoneGenerator extends JavaPlugin {
         }
     }
 
-    public ItemStack getStoneGenerator() {
-        return stoneGenerator;
+    public ItemStack getGenerator() {
+        return generator;
     }
 
     public List<Block> getBlocks() {
         return blocks;
+    }
+
+    public Material getGenerated() {
+        return generated;
     }
 }

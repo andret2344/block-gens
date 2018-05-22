@@ -1,4 +1,4 @@
-name: atsStoneGenerator
-main: eu.andret.atsstonegenerator.atsStoneGenerator
+name: atsBlockGenerator
+main: eu.andret.blockgenerator.atsBlockGenerator
 version: 1.1
 author: Andret

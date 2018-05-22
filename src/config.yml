@@ -1,4 +1,7 @@
 stone:
-  name: '&5Tworzy stone!'
-  lore: 'BIIIJ MNIEE!!'
+  name: '&5Creates blocks!'
+  lore: 'HIT ME!!'
 regen-delay: 1
+material:
+  generator: SPONGE
+  generated: STONE

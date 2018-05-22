@@ -26,11 +26,18 @@ public class atsBlockGenerator extends JavaPlugin {
         saveDefaultConfig();
         new BlockGeneratorListener(this);
         file = new File(getDataFolder(), "list.tmp");
-        generator = new ItemStack(Material.getMaterial(getConfig().getString("material.generator", "SPONGE")));
+        Material tmp = Material.getMaterial(getConfig().getString("material.generator", "SPONGE"));
+        if (tmp == null) {
+            tmp = Material.SPONGE;
+        }
+        generator = new ItemStack(tmp);
         ItemMeta im = generator.getItemMeta();
         im.setDisplayName(getConfig().getString("stone.name").replace("&", "§"));
         im.setLore(Arrays.asList(getConfig().getString("stone.lore").replace("&", "§").split("\r")));
         generated = Material.getMaterial(getConfig().getString("material.generated", "STONE"));
+        if (generated == null) {
+            generated = Material.STONE;
+        }
         generator.setItemMeta(im);
         ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), generator);
         shapedRecipe.shape("@@@", "@#@", "@@@").setIngredient('@', Material.STONE).setIngredient('#', Material.PISTON_BASE);
@@ -67,7 +74,7 @@ public class atsBlockGenerator extends JavaPlugin {
         try {
             if (file.exists()) {
                 BufferedReader reader = new BufferedReader(new FileReader(file));
-                String line = "";
+                String line;
                 while ((line = reader.readLine()) != null) {
                     String[] s = line.split(":");
                     Location l = new Location(getServer().getWorld(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]));

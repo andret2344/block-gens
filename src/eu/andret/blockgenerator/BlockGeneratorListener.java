@@ -19,15 +19,9 @@ public class BlockGeneratorListener implements Listener {
 
     @EventHandler
     public void place(BlockPlaceEvent e) {
-        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta() == null) {
-            return;
-        }
-        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName() == null) {
-            return;
-        }
-        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals(plugin.getGenerator().getItemMeta().getDisplayName())) {
+        if (plugin.getGenerator().equals(e.getItemInHand())) {
             plugin.getBlocks().add(e.getBlock());
-            e.getBlock().getLocation().add(0, 1, 0).getBlock().setType(plugin.getGenerated());
+            e.getBlockPlaced().getRelative(0, 1, 0).setType(plugin.getGenerated());
         }
     }
 

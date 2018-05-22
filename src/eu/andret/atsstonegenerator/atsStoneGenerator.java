@@ -16,14 +16,12 @@ import java.util.List;
 
 public class atsStoneGenerator extends JavaPlugin {
     private static File dataFolder, file;
-    private static atsStoneGenerator instance;
 
     private final ItemStack stoneGenerator = new ItemStack(Material.SPONGE);
     private final List<Block> blocks = new ArrayList<>();
 
     @Override
     public void onEnable() {
-        atsStoneGenerator.instance = this;
         saveDefaultConfig();
         atsStoneGenerator.file = new File(getDataFolder(), "list.tmp");
         atsStoneGenerator.dataFolder = getDataFolder();
@@ -34,7 +32,6 @@ public class atsStoneGenerator extends JavaPlugin {
         ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), stoneGenerator);
         shapedRecipe.shape("@@@", "@#@", "@@@").setIngredient('@', Material.STONE).setIngredient('#', Material.PISTON_BASE);
         getServer().addRecipe(shapedRecipe);
-        getServer().getPluginManager().registerEvents(new StonePlace(), this);
         load();
     }
 
@@ -82,10 +79,6 @@ public class atsStoneGenerator extends JavaPlugin {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    public static atsStoneGenerator getInstance() {
-        return atsStoneGenerator.instance;
     }
 
     public ItemStack getStoneGenerator() {

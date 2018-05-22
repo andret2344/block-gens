@@ -13,7 +13,14 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 
 public class StonePlace implements Listener {
-    private List<Block> list = atsStoneGenerator.getInstance().getBlocks();
+    private final List<Block> list;
+    private final Plugin plugin;
+
+    public StonePlace(Plugin plugin) {
+        this.plugin = plugin;
+        list = plugin.getBlocks();
+        getServer().getPluginManager().registerEvents(this, plugin);
+    }
 
     @EventHandler
     public void place(BlockPlaceEvent e) {
@@ -23,7 +30,7 @@ public class StonePlace implements Listener {
         if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName() == null) {
             return;
         }
-        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals(atsStoneGenerator.getInstance().getStoneGenerator().getItemMeta().getDisplayName())) {
+        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals(plugin.getStoneGenerator().getItemMeta().getDisplayName())) {
             list.add(e.getBlock());
             e.getBlock().getLocation().add(0, 1, 0).getBlock().setType(Material.STONE);
         }
@@ -34,10 +41,9 @@ public class StonePlace implements Listener {
         Block brokenBlock = e.getBlock();
         for (Block block : list) {
             if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
-                int time = atsStoneGenerator.getInstance().getConfig().getInt("regen-delay");
-                Bukkit.getScheduler().scheduleSyncDelayedTask(atsStoneGenerator.getInstance(), new Runnable() {
-                    @Override
-                    public synchronized void run() {
+                int time = plugin.getConfig().getInt("regen-delay");
+                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                    synchronized (brokenBlock) {
                         brokenBlock.setType(Material.STONE);
                     }
                 }, time);
@@ -46,7 +52,7 @@ public class StonePlace implements Listener {
                 e.setCancelled(true);
                 brokenBlock.setType(Material.AIR);
                 if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
-                    brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), new ItemStack(atsStoneGenerator.getInstance().getStoneGenerator()));
+                    brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), new ItemStack(plugin.getStoneGenerator()));
                 }
                 return;
             }

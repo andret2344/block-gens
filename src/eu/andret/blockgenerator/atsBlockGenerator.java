@@ -1,32 +1,49 @@
 package eu.andret.blockgenerator;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class atsBlockGenerator extends JavaPlugin {
     private final File file = new File(getDataFolder(), "list.tmp");
-    private final List<Block> generators = new ArrayList<>();
-
-    private ItemStack generator;
-    private Material generated;
+    private final List<BlockGenerator> generators = new ArrayList<>();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         setUpListeners();
-        createBlocks();
-        createRecipe();
+        List<?> sections = getConfig().getList("generators");
+        for (Object section : sections) {
+            ConfigurationSection current = getConfig().createSection("current", (Map<?, ?>) section);
+            ItemStack generator = createBlock(current.getConfigurationSection("items.generator"));
+            ItemStack generated = createBlock(current.getConfigurationSection("items.generated"));
+            generators.add(new BlockGenerator(current.getInt("regen-delay"), generator, generated));
+            List<String> shape = current.getStringList("crafting.shape");
+            Map<Character, Material> mapping = new HashMap<>();
+            ConfigurationSection configurationSection = current.getConfigurationSection("crafting.mapping");
+            for (String key : configurationSection.getKeys(false)) {
+                Material mat = Material.getMaterial(configurationSection.getString(key));
+                if (mat != null) {
+                    mapping.put(key.charAt(0), mat);
+                }
+            }
+            createRecipe(generator, shape, mapping);
+        }
         loadGenerators();
     }
 
@@ -35,43 +52,46 @@ public class atsBlockGenerator extends JavaPlugin {
         saveGenerators();
     }
 
+    private ItemStack createBlock(ConfigurationSection section) {
+        Material tmp = Material.getMaterial(section.getString("material"));
+        if (tmp == null) {
+            return null;
+        }
+        ItemStack itemStack = new ItemStack(tmp);
+        ItemMeta im = itemStack.getItemMeta();
+        if (section.getString("name") != null) {
+            im.setDisplayName(section.getString("name").replace("&", "§"));
+        }
+        if (section.getStringList("lore") != null) {
+            im.setLore(section.getStringList("lore").stream().collect(ArrayList::new, (l, s) -> l.add(s.replace("&", "§")), ArrayList::addAll));
+        }
+        itemStack.setItemMeta(im);
+        return itemStack;
+    }
+
     private void setUpListeners() {
         new BlockGeneratorListener(this);
     }
 
-    private void createRecipe() {
-        ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), generator);
-        shapedRecipe.shape("@@@", "@#@", "@@@").setIngredient('@', Material.STONE).setIngredient('#', Material.PISTON_BASE);
-        getServer().addRecipe(shapedRecipe);
-    }
-
-    private void createBlocks() {
-        Material tmp = Material.getMaterial(getConfig().getString("material.generator", "SPONGE"));
-        if (tmp == null) {
-            tmp = Material.SPONGE;
+    private void createRecipe(ItemStack target, List<String> shape, Map<Character, Material> mapping) {
+        ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, (getDescription().getFullName() + "-" + target.getItemMeta().getDisplayName()).replace(' ', '_')), target);
+        recipe.shape(shape.toArray(new String[]{}));
+        for (Map.Entry<Character, Material> entry : mapping.entrySet()) {
+            recipe.setIngredient(entry.getKey(), entry.getValue());
         }
-        generator = new ItemStack(tmp);
-        ItemMeta im = generator.getItemMeta();
-        im.setDisplayName(getConfig().getString("stone.name").replace("&", "§"));
-        im.setLore(Arrays.asList(getConfig().getString("stone.lore").replace("&", "§").split("\r")));
-        generated = Material.getMaterial(getConfig().getString("material.generated", "STONE"));
-        if (generated == null) {
-            generated = Material.STONE;
-        }
-        generator.setItemMeta(im);
+        getServer().addRecipe(recipe);
     }
 
     private void saveGenerators() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(file, true))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(file, false))) {
             if (!file.exists() && generators.size() != 0) {
                 if (!file.createNewFile()) {
                     System.err.println("ERROR WHILE CREATING FILE!");
                     return;
                 }
             }
-            for (Block b : generators) {
-                pw.println(b.getWorld().getName() + ":" + b.getX() + ":" + b.getY() + ":" + b.getZ());
-            }
+            generators.stream().flatMap(s -> s.getPlaced().stream())
+                    .forEach(block -> pw.println(block.getType().name() + ":" + block.getWorld().getName() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ()));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -83,25 +103,25 @@ public class atsBlockGenerator extends JavaPlugin {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] s = line.split(":");
-                    Location l = new Location(getServer().getWorld(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]));
-                    generators.add(l.getBlock());
+                    Location l = new Location(getServer().getWorld(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]), Integer.parseInt(s[4]));
+                    Material material = Material.getMaterial(s[0]);
+                    for (BlockGenerator generator : generators) {
+                        if (generator.getGenerator().getType().equals(material)) {
+                            generator.add(l);
+                            break;
+                        }
+                    }
                 }
-                file.delete();
+                if (!file.delete()) {
+                    System.err.print("Error while removing temporary file");
+                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    public ItemStack getGenerator() {
-        return generator;
-    }
-
-    public List<Block> getGenerators() {
+    public List<BlockGenerator> getGenerators() {
         return generators;
-    }
-
-    public Material getGenerated() {
-        return generated;
     }
 }

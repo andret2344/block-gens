@@ -1,7 +1,39 @@
-stone:
-  name: '&5Creates blocks!'
-  lore: 'HIT ME!!'
-regen-delay: 1
-material:
-  generator: SPONGE
-  generated: STONE
+generators:
+  - regen-delay: 1
+    items:
+      generator:
+        material: SPONGE
+        name: '&5Creates stone!'
+        lore:
+          - 'HIT ME!!'
+      generated:
+        material: STONE
+        name: 'Generated stone XD'
+        lore:
+          - 'Yay, I was generated!'
+          - 'Either do I, hm...'
+    crafting:
+      shape:
+        - SSS
+        - SPS
+        - SSS
+      mapping:
+        'S': STONE
+        'P': PISTON_BASE
+  - regen-delay: 10
+    items:
+      generator:
+        material: DIRT
+        name: '&5Creates OBSIDIAN!'
+        lore:
+          - 'HIT ME!!'
+      generated:
+        material: OBSIDIAN
+    crafting:
+      shape:
+        - SSS
+        - SOS
+        - SSS
+      mapping:
+        'S': STONE
+        'O': OBSIDIAN

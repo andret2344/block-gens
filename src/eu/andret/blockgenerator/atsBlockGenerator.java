@@ -28,7 +28,6 @@ public class atsBlockGenerator extends JavaPlugin {
         saveDefaultConfig();
         setUpListeners();
         List<?> sections = getConfig().getList("generators");
-        System.out.println(sections);
         for (Object section : sections) {
             ConfigurationSection current = getConfig().createSection("current", (Map<?, ?>) section);
             ItemStack generator = createBlock(current.getConfigurationSection("items.generator"));

@@ -19,31 +19,37 @@ public class BlockGeneratorListener implements Listener {
 
     @EventHandler
     public void place(BlockPlaceEvent e) {
-        if (plugin.getGenerator().equals(e.getItemInHand())) {
-            plugin.getGenerators().add(e.getBlock());
-            e.getBlockPlaced().getRelative(0, 1, 0).setType(plugin.getGenerated());
+        for (BlockGenerator generator : plugin.getGenerators()) {
+            System.out.println(e.getItemInHand().getItemMeta());
+            System.out.println(generator.getGenerator().getItemMeta());
+            if (generator.getGenerator().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
+                generator.add(e.getBlock());
+                e.getBlockPlaced().getRelative(0, 1, 0).setType(generator.getGenerated().getType());
+            }
         }
     }
 
     @EventHandler
     public void destroy(BlockBreakEvent e) {
         Block brokenBlock = e.getBlock();
-        for (Block generator : plugin.getGenerators()) {
-            if (brokenBlock.getRelative(0, -1, 0).equals(generator)) {
-                int time = plugin.getConfig().getInt("regen-delay");
-                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                    synchronized (brokenBlock) {
-                        brokenBlock.setType(plugin.getGenerated());
-                    }
-                }, time);
-            } else if (brokenBlock.equals(generator)) {
-                plugin.getGenerators().remove(brokenBlock);
-                e.setCancelled(true);
-                brokenBlock.setType(Material.AIR);
-                if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
-                    brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), plugin.getGenerator());
+        for (BlockGenerator generator : plugin.getGenerators()) {
+            for (Block block : generator.getPlaced()) {
+                if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                        synchronized (brokenBlock) {
+                            brokenBlock.setType(generator.getGenerated().getType());
+                        }
+                    }, generator.getRegenDelay());
                 }
-                return;
+                if (brokenBlock.equals(block)) {
+                    generator.remove(brokenBlock);
+                    e.setCancelled(true);
+                    brokenBlock.setType(Material.AIR);
+                    if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+                        brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), generator.getGenerator());
+                    }
+                    return;
+                }
             }
         }
     }

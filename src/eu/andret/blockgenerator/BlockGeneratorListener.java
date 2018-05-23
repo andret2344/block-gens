@@ -20,7 +20,7 @@ public class BlockGeneratorListener implements Listener {
     @EventHandler
     public void place(BlockPlaceEvent e) {
         if (plugin.getGenerator().equals(e.getItemInHand())) {
-            plugin.getBlocks().add(e.getBlock());
+            plugin.getGenerators().add(e.getBlock());
             e.getBlockPlaced().getRelative(0, 1, 0).setType(plugin.getGenerated());
         }
     }
@@ -28,16 +28,16 @@ public class BlockGeneratorListener implements Listener {
     @EventHandler
     public void destroy(BlockBreakEvent e) {
         Block brokenBlock = e.getBlock();
-        for (Block block : plugin.getBlocks()) {
-            if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
+        for (Block generator : plugin.getGenerators()) {
+            if (brokenBlock.getRelative(0, -1, 0).equals(generator)) {
                 int time = plugin.getConfig().getInt("regen-delay");
                 Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                     synchronized (brokenBlock) {
                         brokenBlock.setType(plugin.getGenerated());
                     }
                 }, time);
-            } else if (brokenBlock.equals(block)) {
-                plugin.getBlocks().remove(brokenBlock);
+            } else if (brokenBlock.equals(generator)) {
+                plugin.getGenerators().remove(brokenBlock);
                 e.setCancelled(true);
                 brokenBlock.setType(Material.AIR);
                 if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {

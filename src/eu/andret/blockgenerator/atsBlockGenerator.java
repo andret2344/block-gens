@@ -15,17 +15,37 @@ import java.util.Arrays;
 import java.util.List;
 
 public class atsBlockGenerator extends JavaPlugin {
-    private File file;
+    private final File file = new File(getDataFolder(), "list.tmp");
+    private final List<Block> generators = new ArrayList<>();
 
     private ItemStack generator;
     private Material generated;
-    private final List<Block> blocks = new ArrayList<>();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        setUpListeners();
+        createBlocks();
+        createRecipe();
+        loadGenerators();
+    }
+
+    @Override
+    public void onDisable() {
+        saveGenerators();
+    }
+
+    private void setUpListeners() {
         new BlockGeneratorListener(this);
-        file = new File(getDataFolder(), "list.tmp");
+    }
+
+    private void createRecipe() {
+        ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), generator);
+        shapedRecipe.shape("@@@", "@#@", "@@@").setIngredient('@', Material.STONE).setIngredient('#', Material.PISTON_BASE);
+        getServer().addRecipe(shapedRecipe);
+    }
+
+    private void createBlocks() {
         Material tmp = Material.getMaterial(getConfig().getString("material.generator", "SPONGE"));
         if (tmp == null) {
             tmp = Material.SPONGE;
@@ -39,48 +59,33 @@ public class atsBlockGenerator extends JavaPlugin {
             generated = Material.STONE;
         }
         generator.setItemMeta(im);
-        ShapedRecipe shapedRecipe = new ShapedRecipe(new NamespacedKey(this, getDescription().getName()), generator);
-        shapedRecipe.shape("@@@", "@#@", "@@@").setIngredient('@', Material.STONE).setIngredient('#', Material.PISTON_BASE);
-        getServer().addRecipe(shapedRecipe);
-        load();
     }
 
-    @Override
-    public void onDisable() {
-        try {
-            if (!file.exists() && blocks.size() != 0) {
-                file.createNewFile();
+    private void saveGenerators() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(file, true))) {
+            if (!file.exists() && generators.size() != 0) {
+                if (!file.createNewFile()) {
+                    System.err.println("ERROR WHILE CREATING FILE!");
+                    return;
+                }
+            }
+            for (Block b : generators) {
+                pw.println(b.getWorld().getName() + ":" + b.getX() + ":" + b.getY() + ":" + b.getZ());
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        for (Block b : blocks) {
-            save(b.getWorld().getName() + ":" + b.getX() + ":" + b.getY() + ":" + b.getZ());
-        }
     }
 
-    private void save(String message) {
-        try {
-            PrintWriter pw = new PrintWriter(new FileWriter(file, true));
-            pw.println(message);
-            pw.flush();
-            pw.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void load() {
-        try {
+    private void loadGenerators() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             if (file.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(file));
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] s = line.split(":");
                     Location l = new Location(getServer().getWorld(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]));
-                    blocks.add(l.getBlock());
+                    generators.add(l.getBlock());
                 }
-                reader.close();
                 file.delete();
             }
         } catch (Exception ex) {
@@ -92,8 +97,8 @@ public class atsBlockGenerator extends JavaPlugin {
         return generator;
     }
 
-    public List<Block> getBlocks() {
-        return blocks;
+    public List<Block> getGenerators() {
+        return generators;
     }
 
     public Material getGenerated() {

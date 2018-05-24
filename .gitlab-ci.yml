@@ -1,0 +1,34 @@
+stages:
+ - test
+ - build
+
+test:
+  stage: test
+  script:
+    - gradle clean test
+  artifacts:
+    when: always
+    paths:
+      - build/reports/tests/test
+
+pages:
+  when: always
+  stage: test
+  dependencies:
+    - test
+  script:
+    - mkdir public
+    - mv build/reports/tests/test/* public/
+  artifacts:
+    when: always
+    paths:
+      - public
+
+build:
+  stage: build
+  script:
+    - gradle clean build
+  artifacts:
+    when: always
+    paths:
+      - build/libs/*.jar

@@ -1,0 +1,26 @@
+apply plugin: "java"
+apply plugin: "idea"
+
+jar {
+    baseName = "atsStoneGenerator"
+    version = "2.0"
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    compileOnly group: "org.projectlombok", name: "lombok", version: "1.16.20"
+    testCompileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    testCompile 'junit:junit:4.12'
+}
+
+test {
+    reports {
+        html.enabled = true
+    }
+}

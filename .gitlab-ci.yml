@@ -3,6 +3,7 @@ stages:
  - build
 
 test:
+  image: gradle:4.7-jdk8
   stage: test
   script:
     - gradle clean test
@@ -12,6 +13,7 @@ test:
       - build/reports/tests/test
 
 pages:
+  image: gradle:4.7-jdk8
   when: always
   stage: test
   script:
@@ -23,6 +25,7 @@ pages:
       - public
 
 build:
+  image: gradle:4.7-jdk8
   stage: build
   script:
     - gradle clean build

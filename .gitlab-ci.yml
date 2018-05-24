@@ -1,30 +1,6 @@
 stages:
- - test
  - build
-
-tests:
-  image: gradle:4.7-jdk8
-  stage: test
-  script:
-    - gradle clean test
-  artifacts:
-    when: always
-    paths:
-      - build/reports/tests/test
-
-pages:
-  image: gradle:4.7-jdk8
-  when: always
-  stage: test
-  dependencies:
-    - tests
-  script:
-    - mkdir public
-    - mv build/reports/tests/test/* public/
-  artifacts:
-    when: always
-    paths:
-      - public
+ - test
 
 build:
   image: gradle:4.7-jdk8
@@ -35,3 +11,17 @@ build:
     when: always
     paths:
       - build/libs/*.jar
+      - build/reports/tests/test
+
+pages:
+  when: always
+  stage: test
+  dependencies:
+    - build
+  script:
+    - mkdir public
+    - mv build/reports/tests/test/* public/
+  artifacts:
+    when: always
+    paths:
+      - public

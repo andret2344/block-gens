@@ -2,7 +2,7 @@ stages:
  - test
  - build
 
-test:
+tests:
   image: gradle:4.7-jdk8
   stage: test
   script:
@@ -17,7 +17,7 @@ pages:
   when: always
   stage: test
   dependencies:
-    - test
+    - tests
   script:
     - mkdir public
     - mv build/reports/tests/test/* public/

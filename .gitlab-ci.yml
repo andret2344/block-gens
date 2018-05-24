@@ -14,8 +14,6 @@ test:
 pages:
   when: always
   stage: test
-  dependencies:
-    - test
   script:
     - mkdir public
     - mv build/reports/tests/test/* public/

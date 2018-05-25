@@ -14,15 +14,19 @@ public class BlockGeneratorListener implements Listener {
 
     public BlockGeneratorListener(atsBlockGenerator plugin) {
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
     public void place(BlockPlaceEvent e) {
         for (BlockGenerator generator : plugin.getGenerators()) {
-            if (generator.getGenerator().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
+            if (generator
+                    .getGenerator()
+                    .getItemMeta()
+                    .equals(e
+                            .getItemInHand().getItemMeta())) {
                 generator.add(e.getBlock());
                 e.getBlockPlaced().getRelative(0, 1, 0).setType(generator.getGenerated().getType());
+                return;
             }
         }
     }

@@ -72,7 +72,7 @@ public class atsBlockGenerator extends JavaPlugin {
     }
 
     private void setUpListeners() {
-        new BlockGeneratorListener(this);
+        getServer().getPluginManager().registerEvents(new BlockGeneratorListener(this), this);
     }
 
     private void createRecipe(ItemStack target, List<String> shape, Map<Character, Material> mapping) {

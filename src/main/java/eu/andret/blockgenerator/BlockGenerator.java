@@ -1,5 +1,6 @@
 package eu.andret.blockgenerator;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Value;
@@ -15,6 +16,15 @@ public class BlockGenerator {
     private ItemStack generator;
     private ItemStack generated;
     private List<Block> placed = new ArrayList<>();
+
+    public BlockGenerator(int regenDelay, ItemStack generator, ItemStack generated) {
+        if (regenDelay <= 0) {
+            throw new InvalidParameterException("Regen delay cannot be non-positive!");
+        }
+        this.regenDelay = regenDelay;
+        this.generator = generator;
+        this.generated = generated;
+    }
 
     public List<Block> getPlaced() {
         return new ArrayList<>(placed);

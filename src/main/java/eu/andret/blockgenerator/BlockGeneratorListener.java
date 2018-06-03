@@ -19,13 +19,8 @@ public class BlockGeneratorListener implements Listener {
     @EventHandler
     public void place(BlockPlaceEvent e) {
         for (BlockGenerator generator : plugin.getGenerators()) {
-            if (generator
-                    .getGenerator()
-                    .getItemMeta()
-                    .equals(e
-                            .getItemInHand().getItemMeta())) {
+            if (generator.getGenerator().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
                 generator.add(e.getBlock());
-                
                 return;
             }
         }

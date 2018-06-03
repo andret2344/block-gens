@@ -1,27 +1,11 @@
 stages:
  - build
- - test
 
 build:
-  image: gradle:4.7-jdk8
+  image: gradle:latest
   stage: build
   script:
     - gradle clean build
   artifacts:
-    when: always
     paths:
       - build/libs/*.jar
-      - build/reports/tests/test
-
-pages:
-  when: always
-  stage: test
-  dependencies:
-    - build
-  script:
-    - mkdir public
-    - mv build/reports/tests/test/* public/
-  artifacts:
-    when: always
-    paths:
-      - public

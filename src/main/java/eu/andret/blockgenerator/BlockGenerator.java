@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
@@ -32,6 +33,7 @@ public class BlockGenerator {
 
     public void add(Block b) {
         placed.add(b);
+        b.getRelative(0, 1, 0).setType(generated.getType());
     }
 
     public void add(Location l) {
@@ -40,6 +42,7 @@ public class BlockGenerator {
 
     public void remove(Block b) {
         placed.remove(b);
+        b.getRelative(0, 1, 0).setType(Material.AIR);
     }
 
     public void remove(Location l) {

@@ -25,7 +25,7 @@ public class BlockGeneratorListener implements Listener {
                     .equals(e
                             .getItemInHand().getItemMeta())) {
                 generator.add(e.getBlock());
-                e.getBlockPlaced().getRelative(0, 1, 0).setType(generator.getGenerated().getType());
+                
                 return;
             }
         }

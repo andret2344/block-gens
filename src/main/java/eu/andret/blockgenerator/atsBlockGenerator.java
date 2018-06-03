@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -21,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class atsBlockGenerator extends JavaPlugin {
     private final File file = new File(getDataFolder(), "list.tmp");
+    @Getter
     private final List<BlockGenerator> generators = new ArrayList<>();
 
     @Override
@@ -70,7 +72,7 @@ public class atsBlockGenerator extends JavaPlugin {
     }
 
     private void setUpListeners() {
-        new BlockGeneratorListener(this);
+        getServer().getPluginManager().registerEvents(new BlockGeneratorListener(this), this);
     }
 
     private void createRecipe(ItemStack target, List<String> shape, Map<Character, Material> mapping) {
@@ -119,9 +121,5 @@ public class atsBlockGenerator extends JavaPlugin {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    public List<BlockGenerator> getGenerators() {
-        return generators;
     }
 }

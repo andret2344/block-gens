@@ -14,7 +14,6 @@ public class BlockGeneratorListener implements Listener {
 
     public BlockGeneratorListener(atsBlockGenerator plugin) {
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -22,7 +21,7 @@ public class BlockGeneratorListener implements Listener {
         for (BlockGenerator generator : plugin.getGenerators()) {
             if (generator.getGenerator().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
                 generator.add(e.getBlock());
-                e.getBlockPlaced().getRelative(0, 1, 0).setType(generator.getGenerated().getType());
+                return;
             }
         }
     }

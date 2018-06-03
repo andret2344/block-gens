@@ -1,33 +1,30 @@
 package eu.andret.blockgenerator;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
+@Value
+@NonFinal
 public class BlockGenerator {
-    private final int regenDelay;
-    private final ItemStack generator;
-    private final ItemStack generated;
-    private final List<Block> placed = new ArrayList<>();
+    private int regenDelay;
+    private ItemStack generator;
+    private ItemStack generated;
+    private List<Block> placed = new ArrayList<>();
 
     public BlockGenerator(int regenDelay, ItemStack generator, ItemStack generated) {
+        if (regenDelay <= 0) {
+            throw new InvalidParameterException("Regen delay cannot be non-positive!");
+        }
         this.regenDelay = regenDelay;
         this.generator = generator;
         this.generated = generated;
-    }
-
-    public int getRegenDelay() {
-        return regenDelay;
-    }
-
-    public ItemStack getGenerator() {
-        return generator;
-    }
-
-    public ItemStack getGenerated() {
-        return generated;
     }
 
     public List<Block> getPlaced() {
@@ -36,6 +33,7 @@ public class BlockGenerator {
 
     public void add(Block b) {
         placed.add(b);
+        b.getRelative(0, 1, 0).setType(generated.getType());
     }
 
     public void add(Location l) {
@@ -44,6 +42,7 @@ public class BlockGenerator {
 
     public void remove(Block b) {
         placed.remove(b);
+        b.getRelative(0, 1, 0).setType(Material.AIR);
     }
 
     public void remove(Location l) {

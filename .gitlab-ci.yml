@@ -1,0 +1,11 @@
+stages:
+ - build
+
+build:
+  image: gradle:latest
+  stage: build
+  script:
+    - gradle clean build
+  artifacts:
+    paths:
+      - build/libs/*.jar

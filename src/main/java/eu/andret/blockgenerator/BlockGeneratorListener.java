@@ -1,5 +1,7 @@
 package eu.andret.blockgenerator;
 
+import eu.andret.blockgenerator.entity.Generator;
+import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -9,16 +11,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
+@AllArgsConstructor
 public class BlockGeneratorListener implements Listener {
-    private final atsBlockGenerator plugin;
-
-    public BlockGeneratorListener(atsBlockGenerator plugin) {
-        this.plugin = plugin;
-    }
+    private final BlockGenerator plugin;
 
     @EventHandler
     public void place(BlockPlaceEvent e) {
-        for (BlockGenerator generator : plugin.getGenerators()) {
+        for (Generator generator : plugin.getGenerators()) {
             if (generator.getGenerator().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
                 generator.add(e.getBlock());
                 return;
@@ -29,8 +28,8 @@ public class BlockGeneratorListener implements Listener {
     @EventHandler
     public void destroy(BlockBreakEvent e) {
         Block brokenBlock = e.getBlock();
-        for (BlockGenerator generator : plugin.getGenerators()) {
-            for (Block block : generator.getPlaced()) {
+        for (Generator generator : plugin.getGenerators()) {
+            for (Block block : generator.getPlacedBlocks()) {
                 if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                         synchronized (brokenBlock) {

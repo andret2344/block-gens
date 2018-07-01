@@ -1,4 +1,4 @@
 name: atsBlockGenerator
-main: eu.andret.blockgenerator.atsBlockGenerator
+main: eu.andret.blockgenerator.BlockGenerator
 version: 2.0
 author: Andret

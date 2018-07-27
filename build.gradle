@@ -1,18 +1,21 @@
-apply plugin: "java"
-apply plugin: "idea"
-
-jar {
-    baseName = "atsStoneGenerator"
-    version = "2.0"
+plugins {
+    id "ru.endlesscode.bukkitgradle" version "0.8.0"
 }
 
-repositories {
-    mavenCentral()
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+group = pluginGroup
+version = pluginVersion
+description = pluginDescription
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+jar {
+    baseName = pluginName
+    version = pluginVersion
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
-    compileOnly group: "org.projectlombok", name: "lombok", version: "1.16.20"
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.1'
+    compileOnly spigotApi()
+    compileOnly 'org.projectlombok:lombok:1.16.20'
 }

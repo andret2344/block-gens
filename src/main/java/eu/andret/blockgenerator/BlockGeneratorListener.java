@@ -13,40 +13,40 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 @AllArgsConstructor
 public class BlockGeneratorListener implements Listener {
-    private final BlockGenerator plugin;
+	private final BlockGenerator plugin;
 
-    @EventHandler
-    public void place(BlockPlaceEvent e) {
-        for (Generator generator : plugin.getGenerators()) {
-            if (generator.getGenerator().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
-                generator.add(e.getBlock());
-                return;
-            }
-        }
-    }
+	@EventHandler
+	public void place(BlockPlaceEvent e) {
+		for (Generator generator : plugin.getGenerators()) {
+			if (generator.getGeneratorItem().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
+				generator.add(e.getBlock());
+				return;
+			}
+		}
+	}
 
-    @EventHandler
-    public void destroy(BlockBreakEvent e) {
-        Block brokenBlock = e.getBlock();
-        for (Generator generator : plugin.getGenerators()) {
-            for (Block block : generator.getPlacedBlocks()) {
-                if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                        synchronized (brokenBlock) {
-                            brokenBlock.setType(generator.getGenerated().getType());
-                        }
-                    }, generator.getRegenDelay());
-                }
-                if (brokenBlock.equals(block)) {
-                    generator.remove(brokenBlock);
-                    e.setCancelled(true);
-                    brokenBlock.setType(Material.AIR);
-                    if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
-                        brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), generator.getGenerator());
-                    }
-                    return;
-                }
-            }
-        }
-    }
+	@EventHandler
+	public void destroy(BlockBreakEvent e) {
+		Block brokenBlock = e.getBlock();
+		for (Generator generator : plugin.getGenerators()) {
+			for (Block block : generator.getPlacedBlocks()) {
+				if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+						synchronized (brokenBlock) {
+							brokenBlock.setType(generator.getGeneratedItem().getType());
+						}
+					}, generator.getRegenDelay());
+				}
+				if (brokenBlock.equals(block)) {
+					generator.remove(brokenBlock);
+					e.setCancelled(true);
+					brokenBlock.setType(Material.AIR);
+					if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+						brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), generator.getGeneratorItem());
+					}
+					return;
+				}
+			}
+		}
+	}
 }

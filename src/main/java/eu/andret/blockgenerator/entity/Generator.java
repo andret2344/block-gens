@@ -38,4 +38,12 @@ public class Generator {
 		placedBlocks.remove(b);
 		b.getRelative(0, 1, 0).setType(Material.AIR);
 	}
+
+	public boolean isGenerator(ItemStack candidate) {
+		return generatorItem.getItemMeta().equals(candidate.getItemMeta());
+	}
+
+	public boolean isGenerated(ItemStack candidate) {
+		return generatedItem.getItemMeta().equals(candidate.getItemMeta());
+	}
 }

@@ -27,7 +27,10 @@ import java.util.Map;
 
 @Log
 public class BlockGenerator extends JavaPlugin {
+	private static final char PARAGRAPH = '\u00A7';
+
 	private final File file = new File(getDataFolder(), "list.tmp");
+
 	@Getter
 	private final List<Generator> generators = new ArrayList<>();
 
@@ -69,10 +72,10 @@ public class BlockGenerator extends JavaPlugin {
 		ItemStack itemStack = new ItemStack(tmp);
 		ItemMeta im = itemStack.getItemMeta();
 		if (section.getString("name") != null) {
-			im.setDisplayName(section.getString("name").replace("&", "§"));
+			im.setDisplayName(PARAGRAPH + "r" + section.getString("name").replace('&', PARAGRAPH));
 		}
 		if (section.getStringList("lore") != null) {
-			im.setLore(section.getStringList("lore").stream().collect(ArrayList::new, (l, s) -> l.add(s.replace("&", "§")), ArrayList::addAll));
+			im.setLore(section.getStringList("lore").stream().collect(ArrayList::new, (l, s) -> l.add(s.replace('&', PARAGRAPH)), ArrayList::addAll));
 		}
 		itemStack.setItemMeta(im);
 		return itemStack;
@@ -83,7 +86,9 @@ public class BlockGenerator extends JavaPlugin {
 	}
 
 	private void createRecipe(@NonNull ItemStack target, @NonNull List<String> shape, @NonNull Map<Character, Material> mapping) {
-		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, (getDescription().getFullName() + "-" + target.getItemMeta().getDisplayName()).replace(' ', '_')), target);
+		String name = (getDescription().getName() + "-" + target.getItemMeta().getDisplayName());
+		String normalizedName = name.replace(' ', '_').replaceAll("[^a-zA-Z0-9/._-]", "");
+		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, normalizedName), target);
 		recipe.shape(shape.toArray(new String[]{}));
 		for (Map.Entry<Character, Material> entry : mapping.entrySet()) {
 			recipe.setIngredient(entry.getKey(), entry.getValue());
@@ -95,10 +100,7 @@ public class BlockGenerator extends JavaPlugin {
 		try (PrintWriter pw = new PrintWriter(new FileWriter(file, false))) {
 			if (!file.exists() && !generators.isEmpty() && !file.createNewFile()) {
 				log.warning("ERROR WHILE CREATING FILE!");
-				return;
 			}
-			generators.stream().flatMap(s -> s.getPlacedBlocks().stream())
-					.forEach(block -> pw.println(block.getType().name() + ":" + block.getWorld().getName() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ()));
 		} catch (IOException ex) {
 			log.throwing(getClass().getName(), "saveGenerators", ex);
 		}

@@ -17,12 +17,11 @@ public class BlockGeneratorListener implements Listener {
 
 	@EventHandler
 	public void place(BlockPlaceEvent e) {
-		for (Generator generator : plugin.getGenerators()) {
-			if (generator.getGeneratorItem().getItemMeta().equals(e.getItemInHand().getItemMeta())) {
-				generator.add(e.getBlock());
-				return;
-			}
-		}
+		plugin.getGenerators()
+				.stream()
+				.filter(g -> g.isGenerator(e.getItemInHand()))
+				.findFirst()
+				.ifPresent(g -> g.add(e.getBlock()));
 	}
 
 	@EventHandler

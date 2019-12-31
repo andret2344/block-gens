@@ -1,28 +1,81 @@
-apply plugin: 'java'
+import io.franzbecker.gradle.lombok.task.DelombokTask
+import org.apache.tools.ant.filters.ReplaceTokens
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+buildscript {
+	repositories {
+		jcenter()
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+	dependencies {
+		classpath 'io.franzbecker:gradle-lombok:2.0'
+		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.9.6"
+	}
+}
+
+plugins {
+	id "com.github.johnrengelman.shadow" version "5.2.0"
+}
+
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: 'io.franzbecker.gradle-lombok'
+
+jar {
+	setArchiveBaseName "${pluginName}"
+	setArchiveVersion "${pluginVersion}"
+}
+
+sourceCompatibility = JavaVersion.VERSION_12
+targetCompatibility = JavaVersion.VERSION_12
+
+tasks.withType(JavaCompile) {
+	options.compilerArgs << '-Xlint:unchecked'
+	options.deprecation = true
+}
 
 repositories {
-    mavenCentral()
-    maven { url 'https://hub.spigotmc.org/nexus/content/groups/public/' }
+	mavenCentral()
+	maven { url 'https://hub.spigotmc.org/nexus/content/groups/public/' }
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
-    compileOnly 'org.projectlombok:lombok:1.18.2'
-    annotationProcessor 'org.projectlombok:lombok:1.18.2'
+	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.15.1-R0.1-SNAPSHOT'
+	compileOnly group: "org.projectlombok", name: "lombok", version: "1.18.10"
+	compile group: 'org.json', name: 'json', version: '20190722'
+	annotationProcessor group: "org.projectlombok", name: "lombok", version: "1.18.10"
 }
-
-import org.apache.tools.ant.filters.ReplaceTokens
 
 processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        filter ReplaceTokens, tokens: [
-                version    : pluginVersion,
-                name       : pluginName,
-                description: pluginDescription,
-                main       : pluginGroup + '.' + pluginArtifact + '.' + pluginMain
-        ]
-    }
+	from(sourceSets.main.resources.srcDirs) {
+		filter ReplaceTokens, tokens: [
+				version    : pluginVersion,
+				name       : pluginName,
+				description: pluginDescription,
+				main       : pluginGroup + '.' + pluginArtifact + '.' + pluginMain
+		]
+	}
 }
+
+task delombok(type: DelombokTask, dependsOn: compileJava) {
+	ext.outputDir = file("$buildDir/delombok")
+	outputs.dir(outputDir)
+	sourceSets.main.java.srcDirs.each {
+		inputs.dir(it)
+		args(it, "-d", outputDir)
+	}
+	doFirst {
+		outputDir.deleteDir()
+	}
+}
+
+shadowJar {
+	archiveName "${pluginName}-${pluginVersion}.jar"
+	relocate 'org.json', 'eu.andret.json'
+	configurations = [project.configurations.compile]
+}
+
+build.dependsOn(shadowJar)
+
+compileJava.options.compilerArgs << '-parameters' << '-g'

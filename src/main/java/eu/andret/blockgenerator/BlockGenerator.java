@@ -1,10 +1,11 @@
 package eu.andret.blockgenerator;
 
 import eu.andret.blockgenerator.entity.Generator;
+import eu.andret.blockgenerator.entity.GeneratorPattern;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.java.Log;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -12,11 +13,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -24,12 +24,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log
 public class BlockGenerator extends JavaPlugin {
 	private static final char PARAGRAPH = '\u00A7';
 
 	private final File file = new File(getDataFolder(), "list.tmp");
+
+	@Getter
+	private final List<GeneratorPattern> patterns = new ArrayList<>();
 
 	@Getter
 	private final List<Generator> generators = new ArrayList<>();
@@ -43,7 +47,7 @@ public class BlockGenerator extends JavaPlugin {
 			ConfigurationSection current = getConfig().createSection("current", (Map<?, ?>) section);
 			ItemStack generator = createBlock(current.getConfigurationSection("items.generator"));
 			ItemStack generated = createBlock(current.getConfigurationSection("items.generated"));
-			generators.add(new Generator(current.getInt("regen-delay"), generator, generated));
+			patterns.add(new GeneratorPattern(current.getString("name"), current.getInt("regen-delay"), generator, generated));
 			List<String> shape = current.getStringList("crafting.shape");
 			Map<Character, Material> mapping = new HashMap<>();
 			ConfigurationSection configurationSection = current.getConfigurationSection("crafting.mapping");
@@ -74,9 +78,8 @@ public class BlockGenerator extends JavaPlugin {
 		if (section.getString("name") != null) {
 			im.setDisplayName(PARAGRAPH + "r" + section.getString("name").replace('&', PARAGRAPH));
 		}
-		if (section.getStringList("lore") != null) {
-			im.setLore(section.getStringList("lore").stream().collect(ArrayList::new, (l, s) -> l.add(s.replace('&', PARAGRAPH)), ArrayList::addAll));
-		}
+		section.getStringList("lore");
+		im.setLore(section.getStringList("lore").stream().collect(ArrayList::new, (l, s) -> l.add(s.replace('&', PARAGRAPH)), ArrayList::addAll));
 		itemStack.setItemMeta(im);
 		return itemStack;
 	}
@@ -86,45 +89,59 @@ public class BlockGenerator extends JavaPlugin {
 	}
 
 	private void createRecipe(@NonNull ItemStack target, @NonNull List<String> shape, @NonNull Map<Character, Material> mapping) {
-		String name = (getDescription().getName() + "-" + target.getItemMeta().getDisplayName());
+		String name = getDescription().getName() + "-" + target.getItemMeta().getDisplayName();
 		String normalizedName = name.replace(' ', '_').replaceAll("[^a-zA-Z0-9/._-]", "");
 		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, normalizedName), target);
 		recipe.shape(shape.toArray(new String[]{}));
-		for (Map.Entry<Character, Material> entry : mapping.entrySet()) {
-			recipe.setIngredient(entry.getKey(), entry.getValue());
-		}
+		mapping.forEach(recipe::setIngredient);
 		getServer().addRecipe(recipe);
 	}
 
 	private void saveGenerators() {
-		try (PrintWriter pw = new PrintWriter(new FileWriter(file, false))) {
-			if (!file.exists() && !generators.isEmpty() && !file.createNewFile()) {
+		try (PrintWriter pw = new PrintWriter(file)) {
+			if (!file.exists() && !file.createNewFile()) {
 				log.warning("ERROR WHILE CREATING FILE!");
 			}
+			JSONArray generatorsJson = generators.stream()
+					.collect(Collectors.groupingBy(generator -> generator.getPattern().getName()))
+					.entrySet()
+					.stream()
+					.map(entry -> {
+						JSONObject generatorSet = new JSONObject();
+						generatorSet.put("name", entry.getKey());
+						JSONArray jsonArray = entry.getValue()
+								.stream()
+								.map(Generator::toJSON)
+								.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
+						generatorSet.put("generators", jsonArray);
+						return generatorSet;
+					})
+					.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
+			pw.write(generatorsJson.toString(4));
 		} catch (IOException ex) {
 			log.throwing(getClass().getName(), "saveGenerators", ex);
 		}
 	}
 
+	@SneakyThrows
 	private void loadGenerators() {
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			if (file.exists()) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					String[] s = line.split(":");
-					Location l = new Location(getServer().getWorld(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]), Integer.parseInt(s[4]));
-					Material material = Material.getMaterial(s[0]);
-					generators.stream()
-							.filter(g -> g.getGeneratorItem().getType().equals(material))
-							.limit(1)
-							.forEach(g -> g.add(l.getBlock()));
-				}
-				if (Files.deleteIfExists(file.toPath())) {
-					log.warning("Error while removing temporary file");
-				}
-			}
-		} catch (Exception ex) {
-			log.throwing("BlockGenerator", "loadGenerators", ex);
+		if (!file.exists()) {
+			return;
 		}
+		JSONArray array = new JSONArray(String.join("", Files.readAllLines(file.toPath())));
+		array.forEach(o -> {
+			JSONObject object = (JSONObject) o;
+			object.getJSONArray("generators").forEach(g -> {
+				JSONObject generator = (JSONObject) g;
+				patterns.stream()
+						.filter(p -> p.getName().equals(object.getString("name")))
+						.findAny()
+						.map(Generator::new)
+						.ifPresent(gen -> {
+							gen.fromJSON(generator);
+							generators.add(gen);
+						});
+			});
+		});
 	}
 }

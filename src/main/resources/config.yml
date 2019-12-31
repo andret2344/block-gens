@@ -1,5 +1,6 @@
 generators:
 - regen-delay: 1
+  name: 'sponge'
   items:
     generator:
       material: SPONGE
@@ -22,6 +23,7 @@ generators:
       'S': STONE
       'P': PISTON_BASE
 - regen-delay: 10
+  name: 'dirt'
   items:
     generator:
       material: DIRT

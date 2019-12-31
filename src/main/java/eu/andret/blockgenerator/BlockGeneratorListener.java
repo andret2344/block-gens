@@ -5,11 +5,14 @@ import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+
+import java.util.Arrays;
 
 @AllArgsConstructor
 public class BlockGeneratorListener implements Listener {
@@ -17,35 +20,48 @@ public class BlockGeneratorListener implements Listener {
 
 	@EventHandler
 	public void place(BlockPlaceEvent e) {
-		plugin.getGenerators()
+		plugin.getPatterns()
 				.stream()
-				.filter(g -> g.isGenerator(e.getItemInHand()))
+				.filter(p -> p.matchGeneratorItem(e.getItemInHand()))
 				.findFirst()
-				.ifPresent(g -> g.add(e.getBlock()));
+				.map(p -> new Generator(p, e.getBlock()))
+				.ifPresent(g -> {
+					e.getBlockPlaced().getRelative(0, 1, 0).setType(g.getPattern().getGeneratedItem().getType());
+					plugin.getGenerators().add(g);
+				});
 	}
 
 	@EventHandler
 	public void destroy(BlockBreakEvent e) {
 		Block brokenBlock = e.getBlock();
-		for (Generator generator : plugin.getGenerators()) {
-			for (Block block : generator.getPlacedBlocks()) {
-				if (brokenBlock.getRelative(0, -1, 0).equals(block)) {
-					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-						synchronized (brokenBlock) {
-							brokenBlock.setType(generator.getGeneratedItem().getType());
+		plugin.getGenerators().stream()
+				.filter(generator -> generator.getBlock().getRelative(0, 1, 0).equals(brokenBlock))
+				.findFirst()
+				.map(Generator::getPattern)
+				.ifPresent(pattern -> {
+					e.setCancelled(true);
+					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode())) {
+						World world = brokenBlock.getLocation().getWorld();
+						if (world != null) {
+							world.dropItemNaturally(brokenBlock.getLocation(), pattern.getGeneratedItem());
 						}
-					}, generator.getRegenDelay());
-				}
-				if (brokenBlock.equals(block)) {
-					generator.remove(brokenBlock);
+					}
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(pattern.getGeneratedItem().getType()), pattern.getRegenDelay());
+				});
+
+		plugin.getGenerators().stream()
+				.filter(generator -> brokenBlock.equals(generator.getBlock()))
+				.findFirst()
+				.ifPresent(generator -> {
 					e.setCancelled(true);
 					brokenBlock.setType(Material.AIR);
-					if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
-						brokenBlock.getLocation().getWorld().dropItemNaturally(brokenBlock.getLocation(), generator.getGeneratorItem());
+					plugin.getGenerators().remove(generator);
+					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode())) {
+						World world = brokenBlock.getLocation().getWorld();
+						if (world != null) {
+							world.dropItemNaturally(brokenBlock.getLocation(), generator.getPattern().getGeneratorItem());
+						}
 					}
-					return;
-				}
-			}
-		}
+				});
 	}
 }

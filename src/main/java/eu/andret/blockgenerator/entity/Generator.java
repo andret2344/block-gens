@@ -1,49 +1,37 @@
 package eu.andret.blockgenerator.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Value;
-import org.bukkit.Material;
+import lombok.experimental.NonFinal;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.inventory.ItemStack;
-
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.List;
+import org.json.JSONObject;
 
 @Value
+@AllArgsConstructor
 public class Generator {
-	private int regenDelay;
-	private ItemStack generatorItem;
-	private ItemStack generatedItem;
-	private List<Block> placedBlocks = new ArrayList<>();
+	private GeneratorPattern pattern;
+	@NonFinal
+	private Block block;
 
-	public Generator(int regenDelay, ItemStack generatorItem, ItemStack generatedItem) {
-		if (regenDelay <= 0) {
-			throw new InvalidParameterException("Regen delay cannot be non-positive!");
-		}
-		this.regenDelay = regenDelay;
-		this.generatorItem = generatorItem;
-		this.generatedItem = generatedItem;
+	public Generator(GeneratorPattern pattern) {
+		this.pattern = pattern;
 	}
 
-	public List<Block> getPlacedBlocks() {
-		return new ArrayList<>(placedBlocks);
+	public JSONObject toJSON() {
+		JSONObject result = new JSONObject();
+		result.put("world", block.getWorld().getName());
+		result.put("x", block.getX());
+		result.put("y", block.getY());
+		result.put("z", block.getZ());
+		return result;
 	}
 
-	public void add(Block b) {
-		placedBlocks.add(b);
-		b.getRelative(0, 1, 0).setType(generatedItem.getType());
-	}
-
-	public void remove(Block b) {
-		placedBlocks.remove(b);
-		b.getRelative(0, 1, 0).setType(Material.AIR);
-	}
-
-	public boolean isGenerator(ItemStack candidate) {
-		return generatorItem.getItemMeta().equals(candidate.getItemMeta());
-	}
-
-	public boolean isGenerated(ItemStack candidate) {
-		return generatedItem.getItemMeta().equals(candidate.getItemMeta());
+	public void fromJSON(JSONObject object) {
+		block = new Location(Bukkit.getWorld(object.getString("world")),
+				object.getInt("x"),
+				object.getInt("y"),
+				object.getInt("z")).getBlock();
 	}
 }

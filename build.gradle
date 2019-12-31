@@ -73,7 +73,7 @@ task delombok(type: DelombokTask, dependsOn: compileJava) {
 shadowJar {
 	setArchiveFileName "${pluginName}-${pluginVersion}.jar"
 	relocate 'org.json', 'eu.andret.json'
-	configurations = [project.configurations.compile]
+	configurations = [project.configurations.compileClasspath]
 }
 
 build.dependsOn(shadowJar)

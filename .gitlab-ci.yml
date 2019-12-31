@@ -1,11 +1,11 @@
 stages:
-- build
+  - build
 
 build:
-  image: gradle:latest
+  image: gradle:jdk12
   stage: build
   script:
-  - gradle build --warning-mode all
+    - gradle build --warning-mode all
   artifacts:
     paths:
-    - build/libs/*.jar
+      - build/libs/*.jar

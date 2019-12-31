@@ -8,7 +8,7 @@ You can define any amount of own generators in the `config.yml` file. Name is re
 An example config that includes 2 different generators is present as a default config.
 
 ## Downloading
-You can download the plugin from here: [atsBlockGenerator](https://ats.andret.eu/atsBlockGenerator-2.0.jar "Download from thrusted source!")
+You can download the plugin from here: [atsBlockGenerator](https://ats.andret.eu/atsBlockGenerator-2.2.jar "Download directly from author")
 
 ## Contributing
 If you wish to contribute it with me, just send the join request :)

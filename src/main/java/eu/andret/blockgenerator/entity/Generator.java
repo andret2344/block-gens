@@ -11,9 +11,9 @@ import org.json.JSONObject;
 @Value
 @AllArgsConstructor
 public class Generator {
-	private GeneratorPattern pattern;
+	GeneratorPattern pattern;
 	@NonFinal
-	private Block block;
+	Block block;
 
 	public Generator(GeneratorPattern pattern) {
 		this.pattern = pattern;

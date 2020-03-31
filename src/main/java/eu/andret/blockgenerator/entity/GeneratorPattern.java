@@ -7,10 +7,10 @@ import java.util.Objects;
 
 @Value
 public class GeneratorPattern {
-	private String name;
-	private int regenDelay;
-	private ItemStack generatorItem;
-	private ItemStack generatedItem;
+	String name;
+	int regenDelay;
+	ItemStack generatorItem;
+	ItemStack generatedItem;
 
 	public boolean matchGeneratedItem(ItemStack candidate) {
 		return Objects.equals(generatorItem.getItemMeta(), candidate.getItemMeta());

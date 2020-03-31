@@ -1,42 +1,42 @@
 generators:
-- regen-delay: 1
-  name: 'sponge'
-  items:
-    generator:
-      material: SPONGE
-      name: '&5Creates stone!'
-      lore:
-      - '&rI will give you'
-      - '&4MANY&r cobblestone blocks!'
-    generated:
-      material: STONE
-      name: 'Generated stone XD'
-      lore:
-      - 'Yay, I was generated!'
-      - 'Either do I, hm...'
-  crafting:
-    shape:
-    - SSS
-    - SPS
-    - SSS
-    mapping:
-      'S': STONE
-      'P': PISTON_BASE
-- regen-delay: 10
-  name: 'dirt'
-  items:
-    generator:
-      material: DIRT
-      name: '&5Creates OBSIDIAN!'
-      lore:
-      - 'HIT ME!!'
-    generated:
-      material: OBSIDIAN
-  crafting:
-    shape:
-    - SSS
-    - SOS
-    - SSS
-    mapping:
-      'S': STONE
-      'O': OBSIDIAN
+  - regen-delay: 1
+    name: 'sponge'
+    items:
+      generator:
+        material: SPONGE
+        name: '&5Creates stone!'
+        lore:
+          - 'I will give you'
+          - '&4MANY&r cobblestone blocks!'
+      generated:
+        material: STONE
+        name: 'Generated stone XD'
+        lore:
+          - 'Yay, I was generated!'
+          - 'Either do I, hm...'
+    crafting:
+      shape:
+        - 'SSS'
+        - 'SPS'
+        - 'S S'
+      mapping:
+        'S': STONE
+        'P': PISTON
+  - regen-delay: 10
+    name: 'dirt'
+    items:
+      generator:
+        material: DIRT
+        name: '&5Creates OBSIDIAN!'
+        lore:
+          - 'HIT ME!!'
+      generated:
+        material: OBSIDIAN
+    crafting:
+      shape:
+        - 'S S'
+        - 'SOS'
+        - 'SSS'
+      mapping:
+        'S': STONE
+        'O': OBSIDIAN

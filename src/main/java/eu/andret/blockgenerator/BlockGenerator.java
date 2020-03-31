@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,13 +25,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Log
 public class BlockGenerator extends JavaPlugin {
 	private static final char PARAGRAPH = '\u00A7';
 
-	private final File file = new File(getDataFolder(), "list.tmp");
+	private final File file = new File(getDataFolder(), "generators.json");
 
 	@Getter
 	private final List<GeneratorPattern> patterns = new ArrayList<>();
@@ -51,12 +54,12 @@ public class BlockGenerator extends JavaPlugin {
 			List<String> shape = current.getStringList("crafting.shape");
 			Map<Character, Material> mapping = new HashMap<>();
 			ConfigurationSection configurationSection = current.getConfigurationSection("crafting.mapping");
-			for (String key : configurationSection.getKeys(false)) {
+			Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> {
 				Material mat = Material.getMaterial(configurationSection.getString(key));
 				if (mat != null) {
 					mapping.put(key.charAt(0), mat);
 				}
-			}
+			});
 			createRecipe(generator, shape, mapping);
 		}
 		loadGenerators();
@@ -69,19 +72,27 @@ public class BlockGenerator extends JavaPlugin {
 
 	@NonNull
 	private ItemStack createBlock(ConfigurationSection section) {
-		Material tmp = Material.getMaterial(section.getString("material"));
-		if (tmp == null) {
-			throw new IllegalArgumentException("Unknown material!");
-		}
-		ItemStack itemStack = new ItemStack(tmp);
-		ItemMeta im = itemStack.getItemMeta();
-		if (section.getString("name") != null) {
-			im.setDisplayName(PARAGRAPH + "r" + section.getString("name").replace('&', PARAGRAPH));
-		}
-		section.getStringList("lore");
-		im.setLore(section.getStringList("lore").stream().collect(ArrayList::new, (l, s) -> l.add(s.replace('&', PARAGRAPH)), ArrayList::addAll));
-		itemStack.setItemMeta(im);
-		return itemStack;
+		return Optional.of(section)
+				.map(s -> s.getString("material"))
+				.map(Material::getMaterial)
+				.map(ItemStack::new)
+				.map(is -> Optional.of(is)
+						.map(ItemStack::getItemMeta)
+						.map(im -> {
+							Optional.of(section)
+									.map(s -> s.getString("name"))
+									.map(s -> ChatColor.RESET + s)
+									.map(s -> s.replace('&', PARAGRAPH))
+									.ifPresent(im::setDisplayName);
+							im.setLore(section.getStringList("lore").stream()
+									.map(s -> ChatColor.RESET + s)
+									.map(s -> s.replace('&', PARAGRAPH))
+									.collect(Collectors.toList()));
+							is.setItemMeta(im);
+							return is;
+						}))
+				.flatMap(x -> x)
+				.orElseThrow(IllegalArgumentException::new);
 	}
 
 	private void setUpListeners() {
@@ -89,12 +100,21 @@ public class BlockGenerator extends JavaPlugin {
 	}
 
 	private void createRecipe(@NonNull ItemStack target, @NonNull List<String> shape, @NonNull Map<Character, Material> mapping) {
-		String name = getDescription().getName() + "-" + target.getItemMeta().getDisplayName();
-		String normalizedName = name.replace(' ', '_').replaceAll("[^a-zA-Z0-9/._-]", "");
-		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, normalizedName), target);
+		ShapedRecipe recipe = new ShapedRecipe(createKey(target), target);
 		recipe.shape(shape.toArray(new String[]{}));
 		mapping.forEach(recipe::setIngredient);
 		getServer().addRecipe(recipe);
+	}
+
+	private NamespacedKey createKey(@NonNull ItemStack target) {
+		return new NamespacedKey(this,
+				Optional.of(target)
+						.map(ItemStack::getItemMeta)
+						.map(ItemMeta::getDisplayName)
+						.map(String::toLowerCase)
+						.map(name -> name.replaceAll(PARAGRAPH + "[0-9a-f]", ""))
+						.map(name -> name.replaceAll("[^a-z0-9/._-]", ""))
+						.orElse(getDescription().getName()));
 	}
 
 	private void saveGenerators() {

@@ -42,7 +42,7 @@ tasks.withType(JavaCompile) {
 spigot {
 	authors = ['Andret']
 	apiVersion = '1.15'
-	description = 'A plugin that allows to craft the potion that explodes on a throw.'
+	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 }
 
 shadowJar {

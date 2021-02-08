@@ -1,4 +1,4 @@
-package eu.andret.blockgenerator.entity;
+package eu.andret.ats.blockgenerator.entity;
 
 import lombok.Value;
 import org.bukkit.inventory.ItemStack;

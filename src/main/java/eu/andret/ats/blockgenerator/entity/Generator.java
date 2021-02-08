@@ -1,4 +1,4 @@
-package eu.andret.blockgenerator.entity;
+package eu.andret.ats.blockgenerator.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

@@ -1,11 +1,84 @@
-stages:
-  - build
+image: gradle:jdk11
 
-build:
-  image: gradle:jdk12
+cache: &wrapper
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - chmod a+x gradlew
+
+stages:
+  - prepare
+  - build
+  - verify
+  - deploy
+
+wrapper:
+  stage: prepare
+  script:
+    - gradle wrapper
+
+compile:
   stage: build
   script:
-    - gradle build --warning-mode all
+    - ./gradlew assemble
+  artifacts:
+    paths:
+      - build/classes/**
+      - build/libs/*.jar
+  cache:
+    <<: *wrapper
+    policy: pull
+
+delombok:
+  stage: build
+  script:
+    - ./gradlew delombok
+  artifacts:
+    paths:
+      - build/delombok/**
+  cache:
+    <<: *wrapper
+    policy: pull
+
+junit:
+  stage: verify
+  dependencies:
+    - compile
+  script:
+    - ./gradlew test
+  coverage: '/^Coverage:\s(\d+\.\d+%)/'
+  when: on_success
+  artifacts:
+    reports:
+      junit: build/test-results/test/**.xml
+  cache:
+    <<: *wrapper
+    policy: pull
+
+publish:
+  stage: deploy
+  script:
+    - ./gradlew clean
+    - ./gradlew publish
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: manual
+    - when: never
+  cache:
+    <<: *wrapper
+    policy: pull
+
+jar:
+  stage: deploy
+  script:
+    - gradle build
   artifacts:
     paths:
       - build/libs/*.jar
+  when: manual
+  cache:
+    <<: *wrapper
+    policy: pull

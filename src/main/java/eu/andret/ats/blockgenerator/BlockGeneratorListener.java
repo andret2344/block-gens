@@ -1,6 +1,6 @@
-package eu.andret.blockgenerator;
+package eu.andret.ats.blockgenerator;
 
-import eu.andret.blockgenerator.entity.Generator;
+import eu.andret.ats.blockgenerator.entity.Generator;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;

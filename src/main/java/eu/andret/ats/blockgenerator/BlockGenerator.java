@@ -1,7 +1,7 @@
-package eu.andret.blockgenerator;
+package eu.andret.ats.blockgenerator;
 
-import eu.andret.blockgenerator.entity.Generator;
-import eu.andret.blockgenerator.entity.GeneratorPattern;
+import eu.andret.ats.blockgenerator.entity.Generator;
+import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;

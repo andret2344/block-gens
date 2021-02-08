@@ -1,8 +1,4 @@
-.idea/
-out/
-.gradle/
-gradle/
-build/
-gradlew
-gradlew.bat
-src/test/
+/.idea/
+/.gradle/
+/build/
+/src/test/

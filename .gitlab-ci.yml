@@ -12,6 +12,8 @@ build:
 
 badges:
   stage: build
+  before_script:
+    - chmod u+x ./gradlew
   script:
     - commits=`git rev-list --all --count`
     - latest_release_tag=$(git describe --tags `git rev-list --tags --max-count=1`)

@@ -17,7 +17,7 @@ badges:
   script:
     - commits=`git rev-list --all --count`
     - latest_release_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-    - spigot=$(./gradlew getSpigotVersion)
+    - spigot=`./gradlew getSpigotVersion`
     - echo $spigot
     - echo "{\"commits\":\"$commits\", \"release_tag"\:\"$latest_release_tag\"}" > badges.json
   artifacts:

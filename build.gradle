@@ -27,11 +27,11 @@ repositories {
 }
 
 dependencies {
-	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.15.2-R0.1-SNAPSHOT'
-	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
-	implementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
-	implementation group: 'org.json', name: 'json', version: '20190722'
-	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.16.4-R0.1-SNAPSHOT'
+	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
+	implementation group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
+	implementation group: 'org.json', name: 'json', version: '20201115'
+	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
 }
 
 tasks.withType(JavaCompile) {
@@ -41,12 +41,12 @@ tasks.withType(JavaCompile) {
 
 spigot {
 	authors = ['Andret']
-	apiVersion = '1.15'
+	apiVersion = '1.16'
 	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 }
 
 shadowJar {
-	setArchiveFileName "${project.name}-${project.version}.jar"
+	archiveName "${project.name}-${project.version}.jar"
 	relocate "org.json", "eu.andret.blockgenerator.json"
 	project.configurations.implementation.canBeResolved = true
 	configurations = [project.configurations.implementation]
@@ -62,4 +62,13 @@ task delombok(type: DelombokTask, dependsOn: compileJava) {
 		args(it, '-d', outputDir)
 	}
 	doFirst { outputDir.deleteDir() }
+}
+
+task getSpigotVersion {
+	doLast {
+		File found = (File) configurations.compileClasspath.find { it.name.contains("spigot-api") }
+		def result = found.name.replace("spigot-api-", "")
+		result = (result =~ /\d\.\d+\.\d+/).findAll()
+		println result[0]
+	}
 }

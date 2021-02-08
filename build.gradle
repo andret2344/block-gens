@@ -10,7 +10,7 @@ buildscript {
 
 plugins {
 	id 'com.github.johnrengelman.shadow' version '5.2.0'
-	id 'kr.entree.spigradle' version '1.2.1'
+	id 'kr.entree.spigradle' version '2.2.3'
 }
 
 apply plugin: 'java'
@@ -62,13 +62,4 @@ task delombok(type: DelombokTask, dependsOn: compileJava) {
 		args(it, '-d', outputDir)
 	}
 	doFirst { outputDir.deleteDir() }
-}
-
-task getSpigotVersion {
-	doLast {
-		File found = (File) configurations.compileClasspath.find { it.name.contains("spigot-api") }
-		def result = found.name.replace("spigot-api-", "")
-		result = (result =~ /\d\.\d+\.\d+/).findAll()
-		println result[0]
-	}
 }

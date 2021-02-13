@@ -1,7 +1,8 @@
 package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
-import lombok.AllArgsConstructor;
+import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
+import lombok.Value;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,11 +13,14 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-@AllArgsConstructor
+@Value
 public class BlockGeneratorListener implements Listener {
-	private final BlockGenerator plugin;
+	BlockGenerator plugin;
+	Map<Generator, Integer> schedulers = new HashMap<>();
 
 	@EventHandler
 	public void place(final BlockPlaceEvent e) {
@@ -26,7 +30,6 @@ public class BlockGeneratorListener implements Listener {
 				.findFirst()
 				.map(p -> new Generator(p, e.getBlock()))
 				.ifPresent(g -> {
-					System.out.println(g);
 					e.getBlockPlaced().getRelative(0, 1, 0).setType(g.getPattern().getGeneratedItem().getType());
 					plugin.getGeneratorList().add(g);
 				});
@@ -38,16 +41,18 @@ public class BlockGeneratorListener implements Listener {
 		plugin.getGeneratorList().stream()
 				.filter(generator -> generator.getBlock().getRelative(0, 1, 0).equals(brokenBlock))
 				.findFirst()
-				.map(Generator::getPattern)
-				.ifPresent(pattern -> {
+				.ifPresent(generator -> {
+					final GeneratorPattern pattern = generator.getPattern();
 					e.setCancelled(true);
+					brokenBlock.setType(Material.AIR);
 					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode())) {
 						Optional.of(brokenBlock)
 								.map(Block::getLocation)
 								.map(Location::getWorld)
 								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), pattern.getGeneratedItem()));
 					}
-					plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(pattern.getGeneratedItem().getType()), pattern.getDelay());
+					final int id = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(pattern.getGeneratedItem().getType()), pattern.getDelay());
+					schedulers.put(generator, id);
 				});
 
 		plugin.getGeneratorList().stream()
@@ -63,6 +68,8 @@ public class BlockGeneratorListener implements Listener {
 								.map(Location::getWorld)
 								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), generator.getPattern().getGeneratorItem()));
 					}
+					plugin.getServer().getScheduler().cancelTask(schedulers.get(generator));
+					schedulers.remove(generator);
 				});
 	}
 }

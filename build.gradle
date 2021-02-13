@@ -27,6 +27,7 @@ repositories {
 	mavenCentral()
 	mavenLocal()
 	spigot()
+	maven { url 'https://gitlab.com/api/v4/projects/12063927/packages/maven' }
 }
 
 dependencies {
@@ -34,6 +35,7 @@ dependencies {
 	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
 	compileOnly group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
 	implementation group: 'org.json', name: 'json', version: '20201115'
+	implementation group: 'eu.andret', name: 'ats-arguments', version: '0.1.1.1'
 	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
 
 	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
@@ -50,6 +52,20 @@ spigot {
 	apiVersion = '1.16'
 	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 	version = project.version
+
+	//noinspection GroovyAssignabilityCheck
+	commands {
+		blockgenerator {
+			aliases = ['bg', 'generator']
+		}
+	}
+
+	//noinspection GroovyAssignabilityCheck
+	permissions {
+		'ats.blockgenerator.*' {
+			children = ['ats.blockgenerator.get': true]
+		}
+	}
 }
 
 test {
@@ -107,7 +123,7 @@ publishing {
 	}
 	repositories {
 		maven {
-			url 'https://gitlab.com/api/v4/projects/12063927/packages/maven'
+			url 'https://gitlab.com/api/v4/projects/6382356/packages/maven'
 			credentials(HttpHeaderCredentials) {
 				name = 'Job-Token'
 				value = System.getenv('CI_JOB_TOKEN')
@@ -123,6 +139,7 @@ publishing {
 shadowJar {
 	archiveFileName = "${project.name}-${project.version}.jar"
 	relocate 'org.json', 'eu.andret.ats.blockgenerator.json'
+	relocate "eu.andret.arguments", "eu.andret.ats.blockgenerator.arguments"
 	project.configurations.implementation.canBeResolved = true
 	configurations = [project.configurations.implementation]
 }

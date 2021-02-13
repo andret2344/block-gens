@@ -8,15 +8,15 @@ import java.util.Objects;
 @Value
 public class GeneratorPattern {
 	String name;
-	int regenDelay;
+	long delay;
 	ItemStack generatorItem;
 	ItemStack generatedItem;
 
-	public boolean matchGeneratedItem(ItemStack candidate) {
+	public boolean matchGeneratedItem(final ItemStack candidate) {
 		return Objects.equals(generatorItem.getItemMeta(), candidate.getItemMeta());
 	}
 
-	public boolean matchGeneratorItem(ItemStack candidate) {
+	public boolean matchGeneratorItem(final ItemStack candidate) {
 		return Objects.equals(generatorItem.getItemMeta(), candidate.getItemMeta());
 	}
 }

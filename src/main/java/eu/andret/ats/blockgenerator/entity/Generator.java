@@ -15,12 +15,12 @@ public class Generator {
 	@NonFinal
 	Block block;
 
-	public Generator(GeneratorPattern pattern) {
+	public Generator(final GeneratorPattern pattern) {
 		this.pattern = pattern;
 	}
 
 	public JSONObject toJSON() {
-		JSONObject result = new JSONObject();
+		final JSONObject result = new JSONObject();
 		result.put("world", block.getWorld().getName());
 		result.put("x", block.getX());
 		result.put("y", block.getY());
@@ -28,7 +28,7 @@ public class Generator {
 		return result;
 	}
 
-	public void fromJSON(JSONObject object) {
+	public void fromJSON(final JSONObject object) {
 		block = new Location(Bukkit.getWorld(object.getString("world")),
 				object.getInt("x"),
 				object.getInt("y"),

@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -150,7 +152,7 @@ public class BlockGenerator extends JavaPlugin {
 						generatorSet.put("name", entry.getKey());
 						final JSONArray jsonArray = entry.getValue()
 								.stream()
-								.map(Generator::toJSON)
+								.map(this::mapGeneratorToJSON)
 								.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
 						generatorSet.put(GENERATORS, jsonArray);
 						return generatorSet;
@@ -175,12 +177,26 @@ public class BlockGenerator extends JavaPlugin {
 				patternList.stream()
 						.filter(p -> p.getName().equals(object.getString("name")))
 						.findAny()
-						.map(Generator::new)
-						.ifPresent(gen -> {
-							gen.fromJSON(generator);
-							generatorList.add(gen);
-						});
+						.map(pattern -> mapJSONToGenerator(generator, pattern))
+						.ifPresent(generatorList::add);
 			});
 		});
+	}
+
+	private JSONObject mapGeneratorToJSON(final Generator generator) {
+		final JSONObject result = new JSONObject();
+		result.put("world", generator.getBlock().getWorld().getName());
+		result.put("x", generator.getBlock().getX());
+		result.put("y", generator.getBlock().getY());
+		result.put("z", generator.getBlock().getZ());
+		return result;
+	}
+
+	private Generator mapJSONToGenerator(final JSONObject jsonObject, final GeneratorPattern pattern) {
+		final Location location = new Location(Bukkit.getWorld(jsonObject.getString("world")),
+				jsonObject.getInt("x"),
+				jsonObject.getInt("y"),
+				jsonObject.getInt("z"));
+		return new Generator(pattern, location.getBlock());
 	}
 }

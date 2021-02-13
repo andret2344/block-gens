@@ -1,5 +1,8 @@
 package eu.andret.ats.blockgenerator;
 
+import eu.andret.arguments.AnnotatedCommand;
+import eu.andret.arguments.CommandManager;
+import eu.andret.arguments.api.annotation.Fallback;
 import eu.andret.ats.blockgenerator.entity.Generator;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import lombok.Getter;
@@ -16,12 +19,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,35 +37,21 @@ import java.util.stream.Collectors;
 @Log
 public class BlockGenerator extends JavaPlugin {
 	private static final char PARAGRAPH = '\u00A7';
+	private static final String GENERATORS = "generators";
 
 	private final File file = new File(getDataFolder(), "generators.json");
-
 	@Getter
-	private final List<GeneratorPattern> patterns = new ArrayList<>();
-
+	private final List<GeneratorPattern> patternList = new ArrayList<>();
 	@Getter
-	private final List<Generator> generators = new ArrayList<>();
+	private final List<Generator> generatorList = new ArrayList<>();
 
 	@Override
 	public void onEnable() {
 		saveDefaultConfig();
 		setUpListeners();
-		List<?> sections = getConfig().getList("generators");
-		for (Object section : sections) {
-			ConfigurationSection current = getConfig().createSection("current", (Map<?, ?>) section);
-			ItemStack generator = createBlock(current.getConfigurationSection("items.generator"));
-			ItemStack generated = createBlock(current.getConfigurationSection("items.generated"));
-			patterns.add(new GeneratorPattern(current.getString("name"), current.getInt("regen-delay"), generator, generated));
-			List<String> shape = current.getStringList("crafting.shape");
-			Map<Character, Material> mapping = new HashMap<>();
-			ConfigurationSection configurationSection = current.getConfigurationSection("crafting.mapping");
-			Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> Optional.of(key)
-					.map(configurationSection::getString)
-					.map(Material::getMaterial)
-					.ifPresent(material -> mapping.put(key.charAt(0), material)));
-			createRecipe(generator, shape, mapping);
-		}
+		loadConfig();
 		loadGenerators();
+		setUpCommand();
 	}
 
 	@Override
@@ -68,8 +59,38 @@ public class BlockGenerator extends JavaPlugin {
 		saveGenerators();
 	}
 
+	private void loadConfig() {
+		Optional.of(getConfig())
+				.map(config -> config.getConfigurationSection(GENERATORS))
+				.map(section -> section.getKeys(false))
+				.stream()
+				.flatMap(Collection::stream)
+				.forEach(name -> Optional.of(getConfig())
+						.map(config -> config.getConfigurationSection(GENERATORS))
+						.map(section -> section.getConfigurationSection(name))
+						.ifPresent(section -> {
+							final ItemStack generator = createBlock(section.getConfigurationSection("items.generator"));
+							final ItemStack generated = createBlock(section.getConfigurationSection("items.generated"));
+							patternList.add(new GeneratorPattern(name, section.getLong("delay", 1L), generator, generated));
+							final List<String> shape = section.getStringList("crafting.shape");
+							final Map<Character, Material> mapping = new HashMap<>();
+							final ConfigurationSection configurationSection = section.getConfigurationSection("crafting.mapping");
+							Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> Optional.of(key)
+									.map(configurationSection::getString)
+									.map(Material::getMaterial)
+									.ifPresent(material -> mapping.put(key.charAt(0), material)));
+							createRecipe(generator, shape, mapping);
+						}));
+	}
+
+	private void setUpCommand() {
+		final AnnotatedCommand command = CommandManager.registerCommand(BlockGeneratorCommand.class, this);
+		command.addTypeCompleter(GeneratorPattern.class, () -> patternList.stream().map(GeneratorPattern::getName).collect(Collectors.toSet()));
+		command.addArgumentMapper("patternName", GeneratorPattern.class, name -> patternList.stream().filter(p -> p.getName().equals(name)).findAny().orElse(null), Fallback.ON_NULL);
+	}
+
 	@NonNull
-	private ItemStack createBlock(ConfigurationSection section) {
+	private ItemStack createBlock(final ConfigurationSection section) {
 		return Optional.of(section)
 				.map(s -> s.getString("material"))
 				.map(Material::getMaterial)
@@ -97,14 +118,14 @@ public class BlockGenerator extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new BlockGeneratorListener(this), this);
 	}
 
-	private void createRecipe(@NonNull ItemStack target, @NonNull List<String> shape, @NonNull Map<Character, Material> mapping) {
-		ShapedRecipe recipe = new ShapedRecipe(createKey(target), target);
-		recipe.shape(shape.toArray(new String[]{}));
+	private void createRecipe(@NonNull final ItemStack target, @NonNull final List<String> shape, @NonNull final Map<Character, Material> mapping) {
+		final ShapedRecipe recipe = new ShapedRecipe(createKey(target), target);
+		recipe.shape(shape.toArray(new String[0]));
 		mapping.forEach(recipe::setIngredient);
 		getServer().addRecipe(recipe);
 	}
 
-	private NamespacedKey createKey(@NonNull ItemStack target) {
+	private NamespacedKey createKey(@NonNull final ItemStack target) {
 		return new NamespacedKey(this,
 				Optional.of(target)
 						.map(ItemStack::getItemMeta)
@@ -116,27 +137,27 @@ public class BlockGenerator extends JavaPlugin {
 	}
 
 	private void saveGenerators() {
-		try (PrintWriter pw = new PrintWriter(file)) {
+		try (final PrintWriter pw = new PrintWriter(file)) {
 			if (!file.exists() && !file.createNewFile()) {
 				log.warning("ERROR WHILE CREATING FILE!");
 			}
-			JSONArray generatorsJson = generators.stream()
+			final JSONArray generatorsJson = generatorList.stream()
 					.collect(Collectors.groupingBy(generator -> generator.getPattern().getName()))
 					.entrySet()
 					.stream()
 					.map(entry -> {
-						JSONObject generatorSet = new JSONObject();
+						final JSONObject generatorSet = new JSONObject();
 						generatorSet.put("name", entry.getKey());
-						JSONArray jsonArray = entry.getValue()
+						final JSONArray jsonArray = entry.getValue()
 								.stream()
 								.map(Generator::toJSON)
 								.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
-						generatorSet.put("generators", jsonArray);
+						generatorSet.put(GENERATORS, jsonArray);
 						return generatorSet;
 					})
 					.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
 			pw.write(generatorsJson.toString(4));
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			log.throwing(getClass().getName(), "saveGenerators", ex);
 		}
 	}
@@ -146,18 +167,18 @@ public class BlockGenerator extends JavaPlugin {
 		if (!file.exists()) {
 			return;
 		}
-		JSONArray array = new JSONArray(String.join("", Files.readAllLines(file.toPath())));
+		final JSONArray array = new JSONArray(new JSONTokener(new FileReader(file)));
 		array.forEach(o -> {
-			JSONObject object = (JSONObject) o;
-			object.getJSONArray("generators").forEach(g -> {
-				JSONObject generator = (JSONObject) g;
-				patterns.stream()
+			final JSONObject object = (JSONObject) o;
+			object.getJSONArray(GENERATORS).forEach(g -> {
+				final JSONObject generator = (JSONObject) g;
+				patternList.stream()
 						.filter(p -> p.getName().equals(object.getString("name")))
 						.findAny()
 						.map(Generator::new)
 						.ifPresent(gen -> {
 							gen.fromJSON(generator);
-							generators.add(gen);
+							generatorList.add(gen);
 						});
 			});
 		});

@@ -61,15 +61,17 @@ public class BlockGeneratorListener implements Listener {
 				.ifPresent(generator -> {
 					e.setCancelled(true);
 					brokenBlock.setType(Material.AIR);
-					plugin.getGeneratorList().remove(generator);
 					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode())) {
 						Optional.of(brokenBlock)
 								.map(Block::getLocation)
 								.map(Location::getWorld)
 								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), generator.getPattern().getGeneratorItem()));
 					}
-					plugin.getServer().getScheduler().cancelTask(schedulers.get(generator));
-					schedulers.remove(generator);
+					if (schedulers.containsKey(generator)) {
+						plugin.getServer().getScheduler().cancelTask(schedulers.get(generator));
+						schedulers.remove(generator);
+					}
+					plugin.getGeneratorList().remove(generator);
 				});
 	}
 }

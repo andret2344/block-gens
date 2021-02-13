@@ -1,6 +1,6 @@
 generators:
-  - delay: 1
-    name: 'sponge'
+  sponge:
+    delay: 1
     items:
       generator:
         material: SPONGE
@@ -22,8 +22,8 @@ generators:
       mapping:
         'S': STONE
         'P': PISTON
-  - delay: 10
-    name: 'dirt'
+  dirt:
+    delay: 10
     items:
       generator:
         material: DIRT

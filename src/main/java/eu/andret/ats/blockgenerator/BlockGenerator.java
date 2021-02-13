@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Log
 public class BlockGenerator extends JavaPlugin {
@@ -62,23 +61,26 @@ public class BlockGenerator extends JavaPlugin {
 
 	private void loadConfig() {
 		Optional.of(getConfig())
-				.map(config -> config.getList(GENERATORS))
-				.map(Collection::stream)
-				.orElse(Stream.empty())
-				.map(section -> getConfig().createSection("current", (Map<?, ?>) section))
-				.forEach(section -> {
-					final ItemStack generator = createBlock(section.getConfigurationSection("items.generator"));
-					final ItemStack generated = createBlock(section.getConfigurationSection("items.generated"));
-					patternList.add(new GeneratorPattern(section.getString("name"), section.getLong("delay", 1L), generator, generated));
-					final List<String> shape = section.getStringList("crafting.shape");
-					final Map<Character, Material> mapping = new HashMap<>();
-					final ConfigurationSection configurationSection = section.getConfigurationSection("crafting.mapping");
-					Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> Optional.of(key)
-							.map(configurationSection::getString)
-							.map(Material::getMaterial)
-							.ifPresent(material -> mapping.put(key.charAt(0), material)));
-					createRecipe(generator, shape, mapping);
-				});
+				.map(config -> config.getConfigurationSection(GENERATORS))
+				.map(section -> section.getKeys(false))
+				.stream()
+				.flatMap(Collection::stream)
+				.forEach(name -> Optional.of(getConfig())
+						.map(config -> config.getConfigurationSection(GENERATORS))
+						.map(section -> section.getConfigurationSection(name))
+						.ifPresent(section -> {
+							final ItemStack generator = createBlock(section.getConfigurationSection("items.generator"));
+							final ItemStack generated = createBlock(section.getConfigurationSection("items.generated"));
+							patternList.add(new GeneratorPattern(name, section.getLong("delay", 1L), generator, generated));
+							final List<String> shape = section.getStringList("crafting.shape");
+							final Map<Character, Material> mapping = new HashMap<>();
+							final ConfigurationSection configurationSection = section.getConfigurationSection("crafting.mapping");
+							Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> Optional.of(key)
+									.map(configurationSection::getString)
+									.map(Material::getMaterial)
+									.ifPresent(material -> mapping.put(key.charAt(0), material)));
+							createRecipe(generator, shape, mapping);
+						}));
 	}
 
 	private void setUpCommand() {

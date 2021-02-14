@@ -1,19 +1,16 @@
 generators:
   sponge:
     delay: 1
-    items:
-      generator:
-        material: SPONGE
-        name: '&5Creates stone!'
-        lore:
-          - 'I will give you'
-          - '&4MANY&r cobblestone blocks!'
-      generated:
-        material: STONE
-        name: 'Generated stone XD'
-        lore:
-          - 'Yay, I was generated!'
-          - 'Either do I, hm...'
+    blocks:
+      generator: sponge
+      generated: stone
+    drops:
+      bread:
+        weight: 1
+        count: 1
+      apple:
+        weight: 1
+        count: 2
     crafting:
       shape:
         - 'SSS'
@@ -24,14 +21,13 @@ generators:
         'P': PISTON
   dirt:
     delay: 10
-    items:
-      generator:
-        material: DIRT
-        name: '&5Creates OBSIDIAN!'
-        lore:
-          - 'HIT ME!!'
-      generated:
-        material: OBSIDIAN
+    blocks:
+      generator: dirt
+      generated: obsidian
+    drops:
+      obsidian:
+        weight: 1
+        count: 1
     crafting:
       shape:
         - 'S S'
@@ -40,3 +36,35 @@ generators:
       mapping:
         'S': STONE
         'O': OBSIDIAN
+
+blocks:
+  sponge:
+    material: SPONGE
+    name: '&5Creates food!'
+    lore:
+      - 'I will give you'
+      - '&4MANY&r fooodstuffs!'
+  dirt:
+    material: DIRT
+    name: '&5Creates OBSIDIAN!'
+    lore:
+      - 'HIT ME!!'
+  obsidian:
+    material: OBSIDIAN
+  stone:
+    material: STONE
+    name: 'Generated stone XD'
+    lore:
+      - 'Yay, I was generated!'
+      - 'Either do I, hm...'
+
+items:
+  bread:
+    material: BREAD
+    name: 'Special bread'
+    lore:
+      - 'Some special bunch of flour'
+  apple:
+    material: APPLE
+  obsidian:
+    material: OBSIDIAN

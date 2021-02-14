@@ -36,6 +36,7 @@ dependencies {
 	compileOnly group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
 	implementation group: 'org.json', name: 'json', version: '20201115'
 	implementation group: 'eu.andret', name: 'ats-arguments', version: '0.1.1.1'
+	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
 	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
 
 	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
@@ -140,6 +141,7 @@ shadowJar {
 	archiveFileName = "${project.name}-${project.version}.jar"
 	relocate 'org.json', 'eu.andret.ats.blockgenerator.json'
 	relocate "eu.andret.arguments", "eu.andret.ats.blockgenerator.arguments"
+	relocate "org.bstats", "eu.andret.ats.blockgenerator.bstats"
 	project.configurations.implementation.canBeResolved = true
 	configurations = [project.configurations.implementation]
 }

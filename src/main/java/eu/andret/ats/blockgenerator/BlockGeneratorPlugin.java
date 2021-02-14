@@ -11,6 +11,7 @@ import eu.andret.ats.blockgenerator.utils.RandomCollection;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,6 +45,7 @@ public class BlockGeneratorPlugin extends JavaPlugin {
 		patternList.addAll(configLoader.loadGeneratorPatterns());
 		loadGenerators();
 		setUpCommand();
+		new Metrics(this, 10330);
 	}
 
 	@Override

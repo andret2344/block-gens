@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Value
@@ -26,11 +27,11 @@ public class BlockGeneratorListener implements Listener {
 	public void place(final BlockPlaceEvent e) {
 		plugin.getPatternList()
 				.stream()
-				.filter(p -> p.matchGeneratorItem(e.getItemInHand()))
+				.filter(p -> Objects.equals(p.getGeneratorItem().getItemStack(), e.getItemInHand()))
 				.findFirst()
 				.map(p -> new Generator(p, e.getBlock()))
 				.ifPresent(g -> {
-					e.getBlockPlaced().getRelative(0, 1, 0).setType(g.getPattern().getGeneratedItem().getType());
+					e.getBlockPlaced().getRelative(0, 1, 0).setType(g.getPattern().getGeneratedItem().getItemStack().getType());
 					plugin.getGeneratorList().add(g);
 				});
 	}
@@ -45,13 +46,13 @@ public class BlockGeneratorListener implements Listener {
 					final GeneratorPattern pattern = generator.getPattern();
 					e.setCancelled(true);
 					brokenBlock.setType(Material.AIR);
-					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode())) {
+					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode()) && !pattern.getDropItems().isEmpty()) {
 						Optional.of(brokenBlock)
 								.map(Block::getLocation)
 								.map(Location::getWorld)
-								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), pattern.getGeneratedItem()));
+								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), pattern.getDropItems().next().getItemStack()));
 					}
-					final int id = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(pattern.getGeneratedItem().getType()), pattern.getDelay());
+					final int id = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(pattern.getGeneratedItem().getItemStack().getType()), pattern.getDelay());
 					schedulers.put(generator, id);
 				});
 
@@ -65,7 +66,7 @@ public class BlockGeneratorListener implements Listener {
 						Optional.of(brokenBlock)
 								.map(Block::getLocation)
 								.map(Location::getWorld)
-								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), generator.getPattern().getGeneratorItem()));
+								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), generator.getPattern().getGeneratorItem().getItemStack()));
 					}
 					if (schedulers.containsKey(generator)) {
 						plugin.getServer().getScheduler().cancelTask(schedulers.get(generator));

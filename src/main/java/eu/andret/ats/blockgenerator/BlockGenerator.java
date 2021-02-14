@@ -5,19 +5,14 @@ import eu.andret.arguments.CommandManager;
 import eu.andret.arguments.api.annotation.Fallback;
 import eu.andret.ats.blockgenerator.entity.Generator;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
+import eu.andret.ats.blockgenerator.entity.NamedItem;
+import eu.andret.ats.blockgenerator.utils.ConfigLoader;
+import eu.andret.ats.blockgenerator.utils.RandomCollection;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,29 +24,26 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Log
 public class BlockGenerator extends JavaPlugin {
-	private static final char PARAGRAPH = '\u00A7';
 	private static final String GENERATORS = "generators";
 
-	private final File file = new File(getDataFolder(), "generators.json");
 	@Getter
 	private final List<GeneratorPattern> patternList = new ArrayList<>();
 	@Getter
 	private final List<Generator> generatorList = new ArrayList<>();
 
+	private final File file = new File(getDataFolder(), "generators.json");
+	private final ConfigLoader configLoader = new ConfigLoader(this);
+
 	@Override
 	public void onEnable() {
 		saveDefaultConfig();
 		setUpListeners();
-		loadConfig();
+		patternList.addAll(configLoader.loadGeneratorPatterns());
 		loadGenerators();
 		setUpCommand();
 	}
@@ -61,81 +53,43 @@ public class BlockGenerator extends JavaPlugin {
 		saveGenerators();
 	}
 
-	private void loadConfig() {
-		Optional.of(getConfig())
-				.map(config -> config.getConfigurationSection(GENERATORS))
-				.map(section -> section.getKeys(false))
-				.stream()
-				.flatMap(Collection::stream)
-				.forEach(name -> Optional.of(getConfig())
-						.map(config -> config.getConfigurationSection(GENERATORS))
-						.map(section -> section.getConfigurationSection(name))
-						.ifPresent(section -> {
-							final ItemStack generator = createBlock(section.getConfigurationSection("items.generator"));
-							final ItemStack generated = createBlock(section.getConfigurationSection("items.generated"));
-							patternList.add(new GeneratorPattern(name, section.getLong("delay", 1L), generator, generated));
-							final List<String> shape = section.getStringList("crafting.shape");
-							final Map<Character, Material> mapping = new HashMap<>();
-							final ConfigurationSection configurationSection = section.getConfigurationSection("crafting.mapping");
-							Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> Optional.of(key)
-									.map(configurationSection::getString)
-									.map(Material::getMaterial)
-									.ifPresent(material -> mapping.put(key.charAt(0), material)));
-							createRecipe(generator, shape, mapping);
-						}));
-	}
-
 	private void setUpCommand() {
 		final AnnotatedCommand command = CommandManager.registerCommand(BlockGeneratorCommand.class, this);
-		command.addTypeCompleter(GeneratorPattern.class, () -> patternList.stream().map(GeneratorPattern::getName).collect(Collectors.toSet()));
-		command.addArgumentMapper("patternName", GeneratorPattern.class, name -> patternList.stream().filter(p -> p.getName().equals(name)).findAny().orElse(null), Fallback.ON_NULL);
-	}
-
-	@NonNull
-	private ItemStack createBlock(final ConfigurationSection section) {
-		return Optional.of(section)
-				.map(s -> s.getString("material"))
-				.map(Material::getMaterial)
-				.map(ItemStack::new)
-				.map(is -> Optional.of(is)
-						.map(ItemStack::getItemMeta)
-						.map(im -> {
-							Optional.of(section)
-									.map(s -> s.getString("name"))
-									.map(s -> ChatColor.RESET + s)
-									.map(s -> s.replace('&', PARAGRAPH))
-									.ifPresent(im::setDisplayName);
-							im.setLore(section.getStringList("lore").stream()
-									.map(s -> ChatColor.RESET + s)
-									.map(s -> s.replace('&', PARAGRAPH))
-									.collect(Collectors.toList()));
-							is.setItemMeta(im);
-							return is;
-						}))
-				.flatMap(x -> x)
-				.orElseThrow(IllegalArgumentException::new);
+		command.addArgumentCompleter("generatorName", () -> patternList.stream()
+				.map(GeneratorPattern::getGeneratorItem)
+				.map(NamedItem::getName)
+				.collect(Collectors.toSet()));
+		command.addArgumentMapper("generatorName", NamedItem.class, name -> patternList.stream()
+				.map(GeneratorPattern::getGeneratorItem)
+				.filter(p -> p.getName().equals(name))
+				.findAny()
+				.orElse(null), Fallback.ON_NULL);
+		command.addArgumentCompleter("generatedName", () -> patternList.stream()
+				.map(GeneratorPattern::getGeneratedItem)
+				.map(NamedItem::getName)
+				.collect(Collectors.toList()));
+		command.addArgumentMapper("generatedName", NamedItem.class, name -> patternList.stream()
+				.map(GeneratorPattern::getGeneratedItem)
+				.filter(p -> p.getName().equals(name))
+				.findAny()
+				.orElse(null), Fallback.ON_NULL);
+		command.addArgumentCompleter("itemName", () -> patternList.stream()
+				.map(GeneratorPattern::getDropItems)
+				.map(RandomCollection::getItems)
+				.flatMap(Collection::stream)
+				.map(NamedItem::getName)
+				.collect(Collectors.toList()));
+		command.addArgumentMapper("itemName", NamedItem.class, name -> patternList.stream()
+				.map(GeneratorPattern::getDropItems)
+				.map(RandomCollection::getItems)
+				.flatMap(Collection::stream)
+				.filter(p -> p.getName().equals(name))
+				.findAny()
+				.orElse(null), Fallback.ON_NULL);
 	}
 
 	private void setUpListeners() {
 		getServer().getPluginManager().registerEvents(new BlockGeneratorListener(this), this);
-	}
-
-	private void createRecipe(@NonNull final ItemStack target, @NonNull final List<String> shape, @NonNull final Map<Character, Material> mapping) {
-		final ShapedRecipe recipe = new ShapedRecipe(createKey(target), target);
-		recipe.shape(shape.toArray(new String[0]));
-		mapping.forEach(recipe::setIngredient);
-		getServer().addRecipe(recipe);
-	}
-
-	private NamespacedKey createKey(@NonNull final ItemStack target) {
-		return new NamespacedKey(this,
-				Optional.of(target)
-						.map(ItemStack::getItemMeta)
-						.map(ItemMeta::getDisplayName)
-						.map(String::toLowerCase)
-						.map(name -> name.replaceAll(PARAGRAPH + "[0-9a-f]", ""))
-						.map(name -> name.replaceAll("[^a-z0-9/._-]", ""))
-						.orElse(getDescription().getName()));
 	}
 
 	private void saveGenerators() {

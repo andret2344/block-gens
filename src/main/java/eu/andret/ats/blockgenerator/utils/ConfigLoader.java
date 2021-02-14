@@ -1,6 +1,6 @@
 package eu.andret.ats.blockgenerator.utils;
 
-import eu.andret.ats.blockgenerator.BlockGenerator;
+import eu.andret.ats.blockgenerator.BlockGeneratorPlugin;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import eu.andret.ats.blockgenerator.entity.NamedItem;
 import lombok.NonNull;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Value
 public class ConfigLoader {
 	private static final char PARAGRAPH = '\u00A7';
-	BlockGenerator plugin;
+	BlockGeneratorPlugin plugin;
 
 	public List<GeneratorPattern> loadGeneratorPatterns() {
 		final List<NamedItem> items = loadEntities(plugin.getConfig().getConfigurationSection("items"));
@@ -74,11 +74,16 @@ public class ConfigLoader {
 	private void loadCrafting(final ConfigurationSection section, final ItemStack generator) {
 		final List<String> shape = section.getStringList("crafting.shape");
 		final Map<Character, Material> mapping = new HashMap<>();
-		final ConfigurationSection configurationSection = section.getConfigurationSection("crafting.mapping");
-		Objects.requireNonNull(configurationSection).getKeys(false).forEach(key -> Optional.of(key)
-				.map(configurationSection::getString)
-				.map(Material::getMaterial)
-				.ifPresent(material -> mapping.put(key.charAt(0), material)));
+		Optional.of(section)
+				.map(s -> s.getConfigurationSection("crafting.mapping"))
+				.ifPresent(configurationSection -> Optional.of(configurationSection)
+						.map(s -> s.getKeys(false))
+						.stream()
+						.flatMap(Collection::stream)
+						.forEach(key -> Optional.of(key)
+								.map(configurationSection::getString)
+								.map(Material::getMaterial)
+								.ifPresent(material -> mapping.put(key.charAt(0), material))));
 		createRecipe(generator, shape, mapping);
 	}
 

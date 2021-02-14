@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Value
 public class BlockGeneratorListener implements Listener {
-	BlockGenerator plugin;
+	BlockGeneratorPlugin plugin;
 	Map<Generator, Integer> schedulers = new HashMap<>();
 
 	@EventHandler

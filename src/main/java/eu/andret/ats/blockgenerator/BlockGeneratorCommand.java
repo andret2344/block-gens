@@ -12,8 +12,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 @BaseCommand("blockgenerator")
-public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGenerator> {
-	public BlockGeneratorCommand(final CommandSender sender, final BlockGenerator plugin) {
+public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGeneratorPlugin> {
+	public BlockGeneratorCommand(final CommandSender sender, final BlockGeneratorPlugin plugin) {
 		super(sender, plugin);
 	}
 

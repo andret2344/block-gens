@@ -2,9 +2,9 @@ package eu.andret.blockgenerator;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BlockGeneratorTest {
+class BlockGeneratorPluginTest {
 	@Test
 	void dummy() {
 		assertTrue(true);

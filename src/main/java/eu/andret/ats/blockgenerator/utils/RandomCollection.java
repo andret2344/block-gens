@@ -20,7 +20,7 @@ public class RandomCollection<E> {
 
 	public void add(final E item, final double weight) {
 		if (weight <= 0) {
-			throw new IllegalArgumentException("weight cannot be negative! Got: " + weight);
+			throw new IllegalArgumentException("Weight must be positive! Provided: " + weight);
 		}
 		elements.put(item, weight);
 	}

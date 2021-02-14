@@ -28,9 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Log
-public class BlockGenerator extends JavaPlugin {
-	private static final String GENERATORS = "generators";
-
+public class BlockGeneratorPlugin extends JavaPlugin {
 	@Getter
 	private final List<GeneratorPattern> patternList = new ArrayList<>();
 	@Getter
@@ -108,7 +106,7 @@ public class BlockGenerator extends JavaPlugin {
 								.stream()
 								.map(this::mapGeneratorToJSON)
 								.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
-						generatorSet.put(GENERATORS, jsonArray);
+						generatorSet.put("generators", jsonArray);
 						return generatorSet;
 					})
 					.collect(JSONArray::new, JSONArray::put, (a1, a2) -> a2.iterator().forEachRemaining(a1::put));
@@ -126,7 +124,7 @@ public class BlockGenerator extends JavaPlugin {
 		final JSONArray array = new JSONArray(new JSONTokener(new FileReader(file)));
 		array.forEach(o -> {
 			final JSONObject object = (JSONObject) o;
-			object.getJSONArray(GENERATORS).forEach(g -> {
+			object.getJSONArray("generators").forEach(g -> {
 				final JSONObject generator = (JSONObject) g;
 				patternList.stream()
 						.filter(p -> p.getName().equals(object.getString("name")))

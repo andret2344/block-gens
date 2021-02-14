@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -54,6 +55,7 @@ public class BlockGenerator extends JavaPlugin {
 		loadConfig();
 		loadGenerators();
 		setUpCommand();
+		new Metrics(this, 10330);
 	}
 
 	@Override

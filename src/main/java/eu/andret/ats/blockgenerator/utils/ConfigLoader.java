@@ -48,21 +48,28 @@ public class ConfigLoader {
 				.collect(Collectors.toList());
 	}
 
-	private GeneratorPattern loadGenerator(final ConfigurationSection section, final List<NamedItem> items, final List<NamedItem> blocks) {
+	private GeneratorPattern loadGenerator(final ConfigurationSection section, final List<NamedItem> items,
+										   final List<NamedItem> blocks) {
 		final String generator = section.getString("blocks.generator");
 		final String generated = section.getString("blocks.generated");
-		final NamedItem generatorItemStack = blocks.stream()
-				.filter(i -> i.getName().equals(generator))
+		final NamedItem generatorNamedItem = blocks.stream()
+				.filter(namedItem -> namedItem.getName().equals(generator))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException("No '" + generator + "' in item list found. Check config."));
-		final NamedItem generatedItemStack = blocks.stream()
-				.filter(b -> b.getName().equals(generated))
+				.orElseThrow(() -> new IllegalArgumentException("No '" + generator
+						+ "' in item list found. Check config."));
+		final NamedItem generatedNamedItem = blocks.stream()
+				.filter(namedItem -> namedItem.getName().equals(generated))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException("No '" + generated + "' in block list found. Check config."));
-		verifyBlock(generatorItemStack);
-		verifyBlock(generatedItemStack);
-		loadCrafting(section, generatorItemStack.getItemStack());
-		return new GeneratorPattern(section.getName(), section.getLong("delay", 1L), generatorItemStack, generatedItemStack, loadDropList(section, items));
+				.orElseThrow(() -> new IllegalArgumentException("No '" + generated
+						+ "' in block list found. Check config."));
+		verifyBlock(generatorNamedItem);
+		verifyBlock(generatedNamedItem);
+		loadCrafting(section, generatorNamedItem.getItemStack());
+		return new GeneratorPattern(section.getName(),
+				section.getLong("delay", 1L),
+				generatorNamedItem,
+				generatedNamedItem,
+				loadDropList(section, items));
 	}
 
 	private void verifyBlock(final NamedItem entity) {
@@ -108,7 +115,8 @@ public class ConfigLoader {
 		return collection;
 	}
 
-	private void createRecipe(@NonNull final ItemStack target, @NonNull final List<String> shape, @NonNull final Map<Character, Material> mapping) {
+	private void createRecipe(@NonNull final ItemStack target, @NonNull final List<String> shape,
+							  @NonNull final Map<Character, Material> mapping) {
 		final ShapedRecipe recipe = new ShapedRecipe(createKey(target), target);
 		recipe.shape(shape.toArray(new String[0]));
 		mapping.forEach(recipe::setIngredient);

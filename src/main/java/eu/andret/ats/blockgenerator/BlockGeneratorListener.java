@@ -1,7 +1,6 @@
 package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
-import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import lombok.Value;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -11,68 +10,87 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 @Value
 public class BlockGeneratorListener implements Listener {
+	private static final String GENERATOR = "generator";
+
 	BlockGeneratorPlugin plugin;
-	Map<Generator, Integer> schedulers = new HashMap<>();
+	Map<Block, Integer> schedulers = new HashMap<>();
 
 	@EventHandler
-	public void place(final BlockPlaceEvent e) {
+	public void place(final BlockPlaceEvent event) {
 		plugin.getPatternList()
 				.stream()
-				.filter(p -> Objects.equals(p.getGeneratorItem().getItemStack(), e.getItemInHand()))
+				.filter(pattern -> Objects.equals(pattern.getGeneratorItem().getItemStack(), event.getItemInHand()))
 				.findFirst()
-				.map(p -> new Generator(p, e.getBlock()))
-				.ifPresent(g -> {
-					e.getBlockPlaced().getRelative(0, 1, 0).setType(g.getPattern().getGeneratedItem().getItemStack().getType());
-					plugin.getGeneratorList().add(g);
+				.map(pattern -> new Generator(pattern, event.getBlock()))
+				.ifPresent(generator -> {
+					final Block relative = event.getBlockPlaced().getRelative(0, 1, 0);
+					relative.setType(generator.getPattern().getGeneratedItem().getItemStack().getType());
+					relative.setMetadata(GENERATOR, new FixedMetadataValue(plugin, generator.getPattern().getName()));
 				});
 	}
 
 	@EventHandler
-	public void destroy(final BlockBreakEvent e) {
-		final Block brokenBlock = e.getBlock();
-		plugin.getGeneratorList().stream()
-				.filter(generator -> generator.getBlock().getRelative(0, 1, 0).equals(brokenBlock))
-				.findFirst()
-				.ifPresent(generator -> {
-					final GeneratorPattern pattern = generator.getPattern();
-					e.setCancelled(true);
-					brokenBlock.setType(Material.AIR);
-					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode()) && !pattern.getDropItems().isEmpty()) {
-						Optional.of(brokenBlock)
-								.map(Block::getLocation)
-								.map(Location::getWorld)
-								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), pattern.getDropItems().next().getItemStack()));
-					}
-					final int id = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(pattern.getGeneratedItem().getItemStack().getType()), pattern.getDelay());
-					schedulers.put(generator, id);
-				});
+	public void destroyGenerated(final BlockBreakEvent event) {
+		final Block brokenBlock = event.getBlock();
+		final Block relative = brokenBlock.getRelative(0, -1, 0);
+		final List<MetadataValue> relativeMetadata = relative.getMetadata(GENERATOR);
+		if (relativeMetadata.isEmpty()) {
+			return;
+		}
+		plugin.getPattern(relativeMetadata.get(0).asString()).ifPresent(pattern -> {
+			event.setCancelled(true);
+			brokenBlock.setType(Material.AIR);
+			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())
+					&& !pattern.getDropItems().isEmpty()) {
+				final ItemStack dropItemStack = pattern.getDropItems().next().getItemStack();
+				Optional.of(brokenBlock)
+						.map(Block::getLocation)
+						.map(Location::getWorld)
+						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), dropItemStack));
+			}
+			final Material material = pattern.getGeneratedItem().getItemStack().getType();
+			final int id = plugin.getServer().getScheduler()
+					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.getDelay());
+			schedulers.put(relative, id);
+		});
+	}
 
-		plugin.getGeneratorList().stream()
-				.filter(generator -> brokenBlock.equals(generator.getBlock()))
-				.findFirst()
-				.ifPresent(generator -> {
-					e.setCancelled(true);
-					brokenBlock.setType(Material.AIR);
-					if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(e.getPlayer().getGameMode())) {
-						Optional.of(brokenBlock)
-								.map(Block::getLocation)
-								.map(Location::getWorld)
-								.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), generator.getPattern().getGeneratorItem().getItemStack()));
-					}
-					if (schedulers.containsKey(generator)) {
-						plugin.getServer().getScheduler().cancelTask(schedulers.get(generator));
-						schedulers.remove(generator);
-					}
-					plugin.getGeneratorList().remove(generator);
-				});
+	@EventHandler
+	public void destroyGenerator(final BlockBreakEvent event) {
+		final Block brokenBlock = event.getBlock();
+		final Block relative = brokenBlock.getRelative(0, -1, 0);
+		final List<MetadataValue> metadata = brokenBlock.getMetadata(GENERATOR);
+		if (metadata.isEmpty()) {
+			return;
+		}
+
+		plugin.getPattern(metadata.get(0).asString()).ifPresent(pattern -> {
+			event.setCancelled(true);
+			brokenBlock.setType(Material.AIR);
+			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())) {
+				Optional.of(brokenBlock)
+						.map(Block::getLocation)
+						.map(Location::getWorld)
+						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(),
+								pattern.getGeneratorItem().getItemStack()));
+			}
+			if (schedulers.containsKey(relative)) {
+				plugin.getServer().getScheduler().cancelTask(schedulers.get(relative));
+				schedulers.remove(relative);
+			}
+		});
 	}
 }

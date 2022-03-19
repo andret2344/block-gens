@@ -1,18 +1,14 @@
 import io.franzbecker.gradle.lombok.task.DelombokTask
 
 buildscript {
-	repositories {
-		jcenter()
-		maven { url 'https://plugins.gradle.org/m2/' }
-	}
-	dependencies { classpath 'io.franzbecker:gradle-lombok:2.0' }
+	dependencies { classpath 'io.franzbecker:gradle-lombok:5.0' }
 }
 
 plugins {
 	id 'de.jansauer.printcoverage' version '2.0.0'
-	id 'com.github.johnrengelman.shadow' version '5.2.0'
-	id 'kr.entree.spigradle' version '2.2.3'
-	id 'io.franzbecker.gradle-lombok' version '4.0.0'
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id 'kr.entree.spigradle' version '2.3.4'
+	id 'io.franzbecker.gradle-lombok' version '5.0.0'
 }
 
 apply plugin: 'idea'
@@ -20,8 +16,8 @@ apply plugin: 'java'
 apply plugin: 'jacoco'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
 	mavenCentral()
@@ -32,15 +28,14 @@ repositories {
 
 dependencies {
 	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
-	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
-	compileOnly group: 'org.jetbrains', name: 'annotations', version: '20.1.0'
-	implementation group: 'org.json', name: 'json', version: '20201115'
+	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+	compileOnly group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
 	implementation group: 'eu.andret', name: 'ats-arguments', version: argumentsVersion
 	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
-	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.18'
+	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
 
 	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
-	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: '1.16.4-R0.1-SNAPSHOT'
+	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.0'
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.7.0'
 }
@@ -50,7 +45,7 @@ compileTestJava.options.compilerArgs << '-parameters' << '-g' << '-Xlint:depreca
 
 spigot {
 	authors = ['Andret']
-	apiVersion = '1.16'
+	apiVersion = '1.18'
 	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 	version = project.version
 
@@ -139,7 +134,6 @@ publishing {
 
 shadowJar {
 	archiveFileName = "${project.name}-${project.version}.jar"
-	relocate 'org.json', 'eu.andret.ats.blockgenerator.json'
 	relocate "eu.andret.arguments", "eu.andret.ats.blockgenerator.arguments"
 	relocate "org.bstats", "eu.andret.ats.blockgenerator.bstats"
 	project.configurations.implementation.canBeResolved = true

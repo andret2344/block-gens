@@ -1,3 +1,7 @@
+/*
+ * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ */
+
 package eu.andret.ats.blockgenerator.utils;
 
 import lombok.AccessLevel;
@@ -41,4 +45,3 @@ public class RandomCollection<E> {
 		return elements.size() == 0;
 	}
 }
-

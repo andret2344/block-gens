@@ -1,14 +1,7 @@
-import io.franzbecker.gradle.lombok.task.DelombokTask
-
-buildscript {
-	dependencies { classpath 'io.franzbecker:gradle-lombok:5.0' }
-}
-
 plugins {
 	id 'de.jansauer.printcoverage' version '2.0.0'
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
 	id 'kr.entree.spigradle' version '2.3.4'
-	id 'io.franzbecker.gradle-lombok' version '5.0.0'
 }
 
 apply plugin: 'idea'
@@ -28,18 +21,18 @@ repositories {
 
 dependencies {
 	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
-	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 	compileOnly group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
 	implementation group: 'eu.andret', name: 'ats-arguments', version: argumentsVersion
 	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
-	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 
-	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
 	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.0'
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.7.0'
-	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 }
 
 compileJava.options.compilerArgs << '-parameters' << '-g' << '-Xlint:deprecation' << '-Xlint:unchecked'
@@ -47,9 +40,10 @@ compileTestJava.options.compilerArgs << '-parameters' << '-g' << '-Xlint:depreca
 
 spigot {
 	authors = ['Andret']
-	apiVersion = '1.18'
+	apiVersion = '1.17'
 	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 	version = project.version
+	libraries = ['org.jetbrains:annotations:23.0.0']
 
 	//noinspection GroovyAssignabilityCheck
 	commands {
@@ -93,7 +87,7 @@ javadoc {
 		setMemberLevel JavadocMemberLevel.PUBLIC
 		setAuthor true
 
-		links 'https://docs.oracle.com/en/java/javase/11/docs/api/'
+		links 'https://docs.oracle.com/en/java/javase/17/docs/api/'
 	}
 }
 
@@ -138,21 +132,9 @@ shadowJar {
 	archiveFileName = "${project.name}-${project.version}.jar"
 	relocate "eu.andret.arguments", "eu.andret.ats.blockgenerator.arguments"
 	relocate "org.bstats", "eu.andret.ats.blockgenerator.bstats"
-	project.configurations.implementation.canBeResolved = true
-	configurations = [project.configurations.implementation]
 }
 
 build.dependsOn(shadowJar)
-
-task delombok(type: DelombokTask, dependsOn: compileJava) {
-	ext.outputDir = file("$buildDir/delombok")
-	outputs.dir(outputDir)
-	sourceSets.main.java.srcDirs.each {
-		inputs.dir(it)
-		args(it, '-d', outputDir)
-	}
-	doFirst { outputDir.deleteDir() }
-}
 
 tasks.register('spigotVersion') {
 	doLast {
@@ -163,11 +145,5 @@ tasks.register('spigotVersion') {
 tasks.register('argumentsVersion') {
 	doLast {
 		println(argumentsVersion)
-	}
-}
-
-tasks.register('version') {
-	doLast {
-		println(version)
 	}
 }

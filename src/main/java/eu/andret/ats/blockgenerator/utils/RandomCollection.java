@@ -30,8 +30,9 @@ public class RandomCollection<E> {
 	}
 
 	public E next() {
+		// solution from https://stackoverflow.com/a/11926952/4675794
 		return elements.entrySet().stream()
-				.map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), -Math.log(RANDOM.nextDouble()) / e.getValue()))
+				.map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), -Math.log(RANDOM.nextDouble()) / entry.getValue()))
 				.min(Map.Entry.comparingByValue())
 				.map(AbstractMap.SimpleEntry::getKey)
 				.orElse(null);

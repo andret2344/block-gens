@@ -5,6 +5,7 @@
 package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
+import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import lombok.Value;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -34,15 +35,17 @@ public class BlockGeneratorListener implements Listener {
 
 	@EventHandler
 	public void place(final BlockPlaceEvent event) {
+		final Block placed = event.getBlock();
 		plugin.getPatternList()
 				.stream()
 				.filter(pattern -> Objects.equals(pattern.getGeneratorItem().getItemStack(), event.getItemInHand()))
 				.findFirst()
-				.map(pattern -> new Generator(pattern, event.getBlock()))
+				.map(pattern -> new Generator(pattern, placed))
 				.ifPresent(generator -> {
-					final Block relative = event.getBlockPlaced().getRelative(0, 1, 0);
-					relative.setType(generator.getPattern().getGeneratedItem().getItemStack().getType());
-					relative.setMetadata(GENERATOR, new FixedMetadataValue(plugin, generator.getPattern().getName()));
+					final GeneratorPattern pattern = generator.getPattern();
+					final Block relative = placed.getRelative(0, 1, 0);
+					relative.setType(pattern.getGeneratedItem().getItemStack().getType());
+					placed.setMetadata(GENERATOR, new FixedMetadataValue(plugin, pattern.getName()));
 				});
 	}
 
@@ -75,7 +78,6 @@ public class BlockGeneratorListener implements Listener {
 	@EventHandler
 	public void destroyGenerator(final BlockBreakEvent event) {
 		final Block brokenBlock = event.getBlock();
-		final Block relative = brokenBlock.getRelative(0, -1, 0);
 		final List<MetadataValue> metadata = brokenBlock.getMetadata(GENERATOR);
 		if (metadata.isEmpty()) {
 			return;
@@ -83,7 +85,6 @@ public class BlockGeneratorListener implements Listener {
 
 		plugin.getPattern(metadata.get(0).asString()).ifPresent(pattern -> {
 			event.setCancelled(true);
-			brokenBlock.setType(Material.AIR);
 			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())) {
 				Optional.of(brokenBlock)
 						.map(Block::getLocation)
@@ -91,6 +92,9 @@ public class BlockGeneratorListener implements Listener {
 						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(),
 								pattern.getGeneratorItem().getItemStack()));
 			}
+			brokenBlock.setType(Material.AIR);
+			brokenBlock.removeMetadata(GENERATOR, plugin);
+			final Block relative = brokenBlock.getRelative(0, 1, 0);
 			if (schedulers.containsKey(relative)) {
 				plugin.getServer().getScheduler().cancelTask(schedulers.get(relative));
 				schedulers.remove(relative);

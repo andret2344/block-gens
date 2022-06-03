@@ -1,3 +1,7 @@
+/*
+ * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ */
+
 package eu.andret.ats.blockgenerator.utils;
 
 import eu.andret.ats.blockgenerator.BlockGeneratorPlugin;
@@ -12,6 +16,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -20,19 +26,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Value
 public class ConfigLoader {
 	private static final char PARAGRAPH = '\u00A7';
+	@NotNull
 	BlockGeneratorPlugin plugin;
 
+	@NotNull
 	public List<GeneratorPattern> loadGeneratorPatterns() {
 		final List<NamedItem> items = loadEntities(plugin.getConfig().getConfigurationSection("items"));
 		final List<NamedItem> blocks = loadEntities(plugin.getConfig().getConfigurationSection("blocks"));
 		return loadGenerators(items, blocks);
 	}
 
+	@NotNull
 	private List<GeneratorPattern> loadGenerators(final List<NamedItem> items, final List<NamedItem> blocks) {
 		final ConfigurationSection generators = plugin.getConfig().getConfigurationSection("generators");
 		if (generators == null) {
@@ -45,13 +53,15 @@ public class ConfigLoader {
 				.map(generators::getConfigurationSection)
 				.filter(Objects::nonNull)
 				.map(section -> loadGenerator(section, items, blocks))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
-	private GeneratorPattern loadGenerator(final ConfigurationSection section, final List<NamedItem> items,
-										   final List<NamedItem> blocks) {
-		final String generator = section.getString("blocks.generator");
-		final String generated = section.getString("blocks.generated");
+	@NotNull
+	private GeneratorPattern loadGenerator(@NotNull final ConfigurationSection configurationSection,
+										   @NotNull final List<NamedItem> items,
+										   @NotNull final List<NamedItem> blocks) {
+		final String generator = configurationSection.getString("blocks.generator");
+		final String generated = configurationSection.getString("blocks.generated");
 		final NamedItem generatorNamedItem = blocks.stream()
 				.filter(namedItem -> namedItem.getName().equals(generator))
 				.findFirst()
@@ -64,48 +74,51 @@ public class ConfigLoader {
 						+ "' in block list found. Check config."));
 		verifyBlock(generatorNamedItem);
 		verifyBlock(generatedNamedItem);
-		loadCrafting(section, generatorNamedItem.getItemStack());
-		return new GeneratorPattern(section.getName(),
-				section.getLong("delay", 1L),
+		loadCrafting(configurationSection, generatorNamedItem.getItemStack());
+		return new GeneratorPattern(configurationSection.getName(),
+				configurationSection.getLong("delay", 1L),
 				generatorNamedItem,
 				generatedNamedItem,
-				loadDropList(section, items));
+				loadDropList(configurationSection, items));
 	}
 
-	private void verifyBlock(final NamedItem entity) {
-		if (!entity.getItemStack().getType().isBlock()) {
-			throw new IllegalArgumentException(entity.getName() + " is not a block. Block required.");
+	private void verifyBlock(@NotNull final NamedItem namedItem) {
+		if (!namedItem.getItemStack().getType().isBlock()) {
+			throw new IllegalArgumentException(namedItem.getName() + " is not a block. Block required.");
 		}
 	}
 
-	private void loadCrafting(final ConfigurationSection section, final ItemStack generator) {
-		final List<String> shape = section.getStringList("crafting.shape");
+	private void loadCrafting(@NotNull final ConfigurationSection configurationSection,
+							  @NotNull final ItemStack generator) {
+		final List<String> shape = configurationSection.getStringList("crafting.shape");
 		final Map<Character, Material> mapping = new HashMap<>();
-		Optional.of(section)
-				.map(s -> s.getConfigurationSection("crafting.mapping"))
-				.ifPresent(configurationSection -> Optional.of(configurationSection)
-						.map(s -> s.getKeys(false))
+		Optional.of(configurationSection)
+				.map(section -> section.getConfigurationSection("crafting.mapping"))
+				.ifPresent(section -> Optional.of(section)
+						.map(mappingSection -> mappingSection.getKeys(false))
 						.stream()
 						.flatMap(Collection::stream)
 						.forEach(key -> Optional.of(key)
-								.map(configurationSection::getString)
+								.map(section::getString)
 								.map(Material::getMaterial)
 								.ifPresent(material -> mapping.put(key.charAt(0), material))));
 		createRecipe(generator, shape, mapping);
 	}
 
-	private RandomCollection<NamedItem> loadDropList(final ConfigurationSection section, final List<NamedItem> items) {
+	@NotNull
+	private RandomCollection<NamedItem> loadDropList(@NotNull final ConfigurationSection configurationSection,
+													 @NotNull final List<NamedItem> items) {
 		final RandomCollection<NamedItem> collection = new RandomCollection<>();
-		Optional.of(section)
-				.map(s -> s.getConfigurationSection("drops"))
-				.map(s -> s.getKeys(false))
+		Optional.of(configurationSection)
+				.map(section -> section.getConfigurationSection("drops"))
+				.map(section -> section.getKeys(false))
 				.stream()
 				.flatMap(Collection::stream)
-				.forEach(itemName -> Optional.of(section)
-						.map(s -> s.getConfigurationSection("drops"))
-						.map(s -> s.getConfigurationSection(itemName))
+				.forEach(itemName -> Optional.of(configurationSection)
+						.map(section -> section.getConfigurationSection("drops"))
+						.map(section -> section.getConfigurationSection(itemName))
 						.ifPresent(item -> items.stream()
-								.filter(i -> i.getName().equals(itemName))
+								.filter(namedItem -> namedItem.getName().equals(itemName))
 								.findAny()
 								.map(NamedItem::getItemStack)
 								.map(ItemStack::getType)
@@ -123,49 +136,56 @@ public class ConfigLoader {
 		plugin.getServer().addRecipe(recipe);
 	}
 
+	@NotNull
 	private NamespacedKey createKey(@NonNull final ItemStack target) {
 		return new NamespacedKey(plugin, Optional.of(target)
 				.map(ItemStack::getItemMeta)
 				.map(ItemMeta::getDisplayName)
 				.map(String::toLowerCase)
-				.map(name -> name.replaceAll(PARAGRAPH + "[0-9a-f]", ""))
-				.map(name -> name.replaceAll("[^a-z0-9/._-]", ""))
+				.map(name -> name.replaceAll(PARAGRAPH + "[\\da-f]", ""))
+				.map(name -> name.replaceAll("[^a-z\\d/._-]", ""))
 				.orElse(plugin.getDescription().getName()));
 	}
 
-	private List<NamedItem> loadEntities(@NonNull final ConfigurationSection section) {
-		return Optional.of(section)
-				.map(s -> s.getKeys(false))
+	@NotNull
+	private List<NamedItem> loadEntities(@Nullable final ConfigurationSection configurationSection) {
+		if (configurationSection == null) {
+			return Collections.emptyList();
+		}
+		return Optional.of(configurationSection)
+				.map(section -> section.getKeys(false))
 				.stream()
 				.flatMap(Collection::stream)
-				.map(section::getConfigurationSection)
+				.map(configurationSection::getConfigurationSection)
 				.filter(Objects::nonNull)
-				.map(s -> new NamedItem(s.getName(), loadItem(s)))
-				.collect(Collectors.toList());
+				.map(section -> new NamedItem(section.getName(), loadItem(section)))
+				.toList();
 	}
 
-	private ItemStack loadItem(final ConfigurationSection section) {
-		return Optional.ofNullable(section)
-				.map(s -> s.getString("material"))
+	@NotNull
+	private ItemStack loadItem(final ConfigurationSection configurationSection) {
+		return Optional.ofNullable(configurationSection)
+				.map(section -> section.getString("material"))
 				.map(Material::getMaterial)
 				.map(ItemStack::new)
-				.map(itemStack -> loadMeta(itemStack, section))
-				.orElse(null);
+				.map(itemStack -> loadMeta(itemStack, configurationSection))
+				.orElseThrow();
 	}
 
-	private ItemStack loadMeta(final ItemStack itemStack, final ConfigurationSection section) {
+	@NotNull
+	private ItemStack loadMeta(final ItemStack itemStack, final ConfigurationSection configurationSection) {
 		return Optional.of(itemStack)
 				.map(ItemStack::getItemMeta)
 				.map(itemMeta -> {
-					Optional.of(section)
-							.map(s -> s.getString("name"))
-							.map(s -> ChatColor.RESET + s)
-							.map(s -> s.replace('&', PARAGRAPH))
+					Optional.of(configurationSection)
+							.map(section -> section.getString("name"))
+							.map(text -> ChatColor.RESET + text)
+							.map(text -> ChatColor.translateAlternateColorCodes('&', text))
 							.ifPresent(itemMeta::setDisplayName);
-					itemMeta.setLore(section.getStringList("lore").stream()
-							.map(s -> ChatColor.RESET + s)
-							.map(s -> s.replace('&', PARAGRAPH))
-							.collect(Collectors.toList()));
+					itemMeta.setLore(configurationSection.getStringList("lore").stream()
+							.map(text -> ChatColor.RESET + text)
+							.map(text -> ChatColor.translateAlternateColorCodes('&', text))
+							.toList());
 					itemStack.setItemMeta(itemMeta);
 					return itemStack;
 				})

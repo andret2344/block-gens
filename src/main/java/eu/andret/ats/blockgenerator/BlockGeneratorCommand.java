@@ -14,10 +14,11 @@ import eu.andret.arguments.api.entity.ExecutorType;
 import eu.andret.ats.blockgenerator.entity.NamedItem;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 @BaseCommand("blockgenerator")
 public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGeneratorPlugin> {
-	public BlockGeneratorCommand(final CommandSender sender, final BlockGeneratorPlugin plugin) {
+	public BlockGeneratorCommand(@NotNull final CommandSender sender, @NotNull final BlockGeneratorPlugin plugin) {
 		super(sender, plugin);
 	}
 
@@ -49,7 +50,7 @@ public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGenerat
 			permission = "ats.blockgenerator.get")
 	public String item(@Mapper("itemName") @Completer("itemName") final NamedItem item) {
 		((Player) sender).getInventory().addItem(item.getItemStack());
-		return "Drop item \"" + item.getName() + "\"";
+		return "Drop item: \"" + item.getName() + "\"";
 	}
 
 	@ArgumentFallback("itemName")

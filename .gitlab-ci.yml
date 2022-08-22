@@ -94,3 +94,16 @@ badges:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: manual
     - when: never
+
+pages:
+  stage: deploy
+  dependencies:
+    - junit
+  script:
+    - mv build/reports/jacoco/test/html/ public/
+  artifacts:
+    paths:
+      - public/**
+  only:
+    - master
+  when: manual

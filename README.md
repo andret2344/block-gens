@@ -13,12 +13,3 @@ recipes **have to** be unique in the whole plugin!), and define the regen delay 
 5s).
 
 An example config that includes 2 different generators is present as a default config.
-
-## Downloading
-
-You can download the plugin from
-here: [spigotmc.org/atsBlockGenerator](https://www.spigotmc.org/resources/atsblockgenerator-craftable-infinite-block-generator.96216/ "atsBlockGenerator")
-
-## Contributing
-
-If you wish to contribute it with me, just send the join request :)

@@ -6,7 +6,7 @@ package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
-import lombok.Value;
+import lombok.AllArgsConstructor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,15 +27,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-@Value
+@AllArgsConstructor
 public class BlockGeneratorListener implements Listener {
 	private static final String GENERATOR = "generator";
 
-	BlockGeneratorPlugin plugin;
-	Map<Block, Integer> schedulers = new HashMap<>();
+	private final BlockGeneratorPlugin plugin;
+	private final Map<Block, Integer> schedulers = new HashMap<>();
 
 	@EventHandler
-	public void place(final BlockPlaceEvent event) {
+	public void place(@NotNull final BlockPlaceEvent event) {
 		final Block placed = event.getBlock();
 		plugin.getPatternList()
 				.stream()
@@ -50,7 +51,7 @@ public class BlockGeneratorListener implements Listener {
 	}
 
 	@EventHandler
-	public void destroyGenerated(final BlockBreakEvent event) {
+	public void destroyGenerated(@NotNull final BlockBreakEvent event) {
 		final Block brokenBlock = event.getBlock();
 		final Block relative = brokenBlock.getRelative(0, -1, 0);
 		final List<MetadataValue> relativeMetadata = relative.getMetadata(GENERATOR);
@@ -76,7 +77,7 @@ public class BlockGeneratorListener implements Listener {
 	}
 
 	@EventHandler
-	public void destroyGenerator(final BlockBreakEvent event) {
+	public void destroyGenerator(@NotNull final BlockBreakEvent event) {
 		final Block brokenBlock = event.getBlock();
 		final List<MetadataValue> metadata = brokenBlock.getMetadata(GENERATOR);
 		if (metadata.isEmpty()) {

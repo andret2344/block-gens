@@ -1,7 +1,7 @@
 plugins {
 	id 'de.jansauer.printcoverage' version '2.0.0'
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
-	id 'kr.entree.spigradle' version '2.3.4'
+	id 'kr.entree.spigradle' version '2.4.2'
 }
 
 apply plugin: 'idea'
@@ -24,14 +24,17 @@ dependencies {
 	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 	compileOnly group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
 	implementation group: 'eu.andret', name: 'ats-arguments', version: argumentsVersion
-	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
+	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.0'
 	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 
 	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
-	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
+	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
 	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.0'
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.7.0'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.6.1'
+	testImplementation group: 'org.mockito', name: 'mockito-inline', version: '4.6.1'
+	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
 	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 }
 

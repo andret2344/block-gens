@@ -1,0 +1,82 @@
+/*
+ * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ */
+
+package eu.andret.ats.blockgenerator.utils;
+
+import eu.andret.ats.blockgenerator.BlockGeneratorPlugin;
+import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
+import eu.andret.ats.blockgenerator.entity.NamedItem;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemFactory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
+class ConfigLoaderTest {
+	private final BlockGeneratorPlugin plugin = mock(BlockGeneratorPlugin.class);
+	private final ConfigLoader configLoader = new ConfigLoader(plugin);
+
+	@Test
+	void loadGeneratorPatterns() throws IOException, InvalidConfigurationException, InvalidDescriptionException {
+		// given
+		FileConfiguration configuration = new YamlConfiguration();
+		configuration.load(
+				new File(Objects.requireNonNull(getClass().getClassLoader().getResource("config.yml")).getFile()));
+		when(plugin.getServer()).thenReturn(mock(Server.class));
+		when(plugin.getName()).thenReturn("pluginName");
+		when(plugin.getConfig()).thenReturn(configuration);
+		when(plugin.getDescription()).thenReturn(
+				new PluginDescriptionFile(
+						new FileInputStream(Objects.requireNonNull(getClass().getClassLoader().getResource("plugin.yml")).getFile())));
+		ItemFactory itemFactory = mock(ItemFactory.class);
+		ItemMeta itemMeta = mock(Damageable.class);
+		when(itemFactory.getItemMeta(any())).thenReturn(itemMeta);
+		try (MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {
+			utilities.when(Bukkit::getItemFactory).thenReturn(itemFactory);
+			// when
+			List<GeneratorPattern> result = configLoader.loadGeneratorPatterns();
+			// then
+			assertThat(result).usingRecursiveComparison().isEqualTo(createGeneratorPatterns());
+		}
+	}
+
+	private List<GeneratorPattern> createGeneratorPatterns() {
+		RandomCollection<NamedItem> randomCollection1 = new RandomCollection<>();
+		randomCollection1.add(new NamedItem("bread", new ItemStack(Material.BREAD)), 1);
+		randomCollection1.add(new NamedItem("apple", new ItemStack(Material.APPLE, 2)), 1);
+		RandomCollection<NamedItem> randomCollection2 = new RandomCollection<>();
+		randomCollection2.add(new NamedItem("obsidian", new ItemStack(Material.OBSIDIAN)), 1);
+		return List.of(
+				new GeneratorPattern("sponge", 1,
+						new NamedItem("sponge", new ItemStack(Material.SPONGE)),
+						new NamedItem("stone", new ItemStack(Material.STONE)),
+						randomCollection1
+				),
+				new GeneratorPattern("dirt", 10,
+						new NamedItem("dirt", new ItemStack(Material.DIRT)),
+						new NamedItem("obsidian", new ItemStack(Material.OBSIDIAN)),
+						randomCollection2));
+	}
+}

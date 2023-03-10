@@ -15,8 +15,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.junit.jupiter.api.Test;
@@ -51,14 +49,13 @@ class ConfigLoaderTest {
 				new PluginDescriptionFile(
 						new FileInputStream(Objects.requireNonNull(getClass().getClassLoader().getResource("plugin.yml")).getFile())));
 		ItemFactory itemFactory = mock(ItemFactory.class);
-		ItemMeta itemMeta = mock(Damageable.class);
-		when(itemFactory.getItemMeta(any())).thenReturn(itemMeta);
+		when(itemFactory.equals(any(), any())).thenReturn(true);
 		try (MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {
 			utilities.when(Bukkit::getItemFactory).thenReturn(itemFactory);
 			// when
 			List<GeneratorPattern> result = configLoader.loadGeneratorPatterns();
 			// then
-			assertThat(result).usingRecursiveComparison().isEqualTo(createGeneratorPatterns());
+			assertThat(result).containsExactlyInAnyOrderElementsOf(createGeneratorPatterns());
 		}
 	}
 

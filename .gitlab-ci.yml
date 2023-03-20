@@ -1,4 +1,4 @@
-image: gradle:jdk17
+image: gradle:8-jdk17
 
 cache: &wrapper
   paths:

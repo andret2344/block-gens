@@ -16,12 +16,14 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.processing.Generated;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Generated("Main class")
 public class BlockGeneratorPlugin extends JavaPlugin {
 	@Getter
 	private final List<GeneratorPattern> patternList = new ArrayList<>();

@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +31,9 @@ public class RandomCollection<E> {
 	public E next() {
 		// solution from https://stackoverflow.com/a/11926952/4675794
 		return elements.entrySet().stream()
-				.map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), -Math.log(RANDOM.nextDouble()) / entry.getValue()))
+				.map(entry -> Map.entry(entry.getKey(), -Math.log(RANDOM.nextDouble()) / entry.getValue()))
 				.min(Map.Entry.comparingByValue())
-				.map(AbstractMap.SimpleEntry::getKey)
+				.map(Map.Entry::getKey)
 				.orElse(null);
 	}
 

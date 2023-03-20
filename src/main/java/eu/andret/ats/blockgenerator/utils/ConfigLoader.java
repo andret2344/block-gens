@@ -29,7 +29,7 @@ import java.util.Optional;
 
 @Value
 public class ConfigLoader {
-	private static final char PARAGRAPH = '\u00A7';
+	private static final char PARAGRAPH = '§';
 	@NotNull
 	BlockGeneratorPlugin plugin;
 

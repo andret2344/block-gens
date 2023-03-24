@@ -1,6 +1,6 @@
-image: gradle:jdk17
+image: gradle:8-jdk17-alpine
 
-cache: &wrapper
+cache:
   paths:
     - .gradle/wrapper
     - .gradle/caches
@@ -10,42 +10,28 @@ before_script:
   - chmod a+x gradlew
 
 stages:
-  - prepare
   - build
   - verify
   - deploy
 
-wrapper:
-  stage: prepare
-  script:
-    - gradle wrapper
-
-compile:
+build:
   stage: build
   script:
     - ./gradlew assemble
   artifacts:
     paths:
-      - build/classes/**
       - build/libs/*.jar
-  cache:
-    <<: *wrapper
-    policy: pull
 
 junit:
   stage: verify
   dependencies:
-    - compile
+    - build
   script:
     - ./gradlew test
-  coverage: '/^Coverage:\s(\d+\.\d+%)/'
-  when: on_success
+  coverage: '/    - Instruction Coverage: ([0-9.]+)%/'
   artifacts:
     reports:
       junit: build/test-results/test/**.xml
-  cache:
-    <<: *wrapper
-    policy: pull
 
 publish:
   stage: deploy
@@ -56,26 +42,18 @@ publish:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: manual
     - when: never
-  cache:
-    <<: *wrapper
-    policy: pull
 
 jar:
   stage: deploy
   script:
-    - gradle build
+    - ./gradlew build
   artifacts:
     paths:
       - build/libs/*.jar
   when: manual
-  cache:
-    <<: *wrapper
-    policy: pull
 
 badges:
   stage: deploy
-  dependencies:
-    - junit
   script:
     - apt-get -qq update
     - apt-get -qq install python3 python3-pip --yes
@@ -85,11 +63,9 @@ badges:
     - anybadge -l atsArguments -v "$(./gradlew argumentsVersion -q)" -f arguments.svg -c "#007ec6"
   artifacts:
     paths:
-      - version.svg
       - spigot.svg
       - arguments.svg
     when: always
-    expire_in: 4 weeks
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: manual

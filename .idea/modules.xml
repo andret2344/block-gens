@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/atsBlockGenerator.main.iml" filepath="$PROJECT_DIR$/.idea/modules/atsBlockGenerator.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/atsBlockGenerator.test.iml" filepath="$PROJECT_DIR$/.idea/modules/atsBlockGenerator.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eu.andret.ats.atsBlockGenerator.main.iml" filepath="$PROJECT_DIR$/.idea/modules/eu.andret.ats.atsBlockGenerator.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eu.andret.ats.atsBlockGenerator.test.iml" filepath="$PROJECT_DIR$/.idea/modules/eu.andret.ats.atsBlockGenerator.test.iml" />
     </modules>
   </component>
 </project>

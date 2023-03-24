@@ -6,6 +6,7 @@ package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
+import eu.andret.ats.blockgenerator.entity.NamedItem;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -68,7 +69,11 @@ public class BlockGeneratorListener implements Listener {
 			brokenBlock.setType(Material.AIR);
 			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())
 					&& !pattern.dropItems().isEmpty()) {
-				final ItemStack dropItemStack = pattern.dropItems().next().itemStack();
+				final NamedItem next = pattern.dropItems().next();
+				if (next == null) {
+					return;
+				}
+				final ItemStack dropItemStack = next.itemStack();
 				Optional.of(brokenBlock)
 						.map(Block::getLocation)
 						.map(Location::getWorld)

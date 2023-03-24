@@ -7,6 +7,7 @@ package eu.andret.ats.blockgenerator.utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.processing.Generated;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,7 @@ public class RandomCollection<E> {
 	}
 
 	@Override
+	@Generated("IntelliJ")
 	public boolean equals(final Object o) {
 		if (this == o) {
 			return true;
@@ -58,11 +60,13 @@ public class RandomCollection<E> {
 	}
 
 	@Override
+	@Generated("IntelliJ")
 	public int hashCode() {
 		return Objects.hash(elements);
 	}
 
 	@Override
+	@Generated("IntelliJ")
 	public String toString() {
 		return "RandomCollection{" +
 				"elements=" + elements +

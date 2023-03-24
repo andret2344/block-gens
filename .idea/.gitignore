@@ -12,5 +12,7 @@
 /gradle.xml
 /compiler.xml
 /discord.xml
+/jarRepositories.xml
+/jpa-buddy.xml
 /libraries
 /uiDesigner.xml

@@ -1,12 +1,8 @@
 /*
- * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator.utils;
-
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,12 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-@Value
 public class RandomCollection<E> {
 	private static final Random RANDOM = new Random();
 
-	@Getter(AccessLevel.NONE)
-	Map<E, Double> elements = new HashMap<>();
+	private final Map<E, Double> elements = new HashMap<>();
 
 	public void add(final E item, final double weight) {
 		if (weight <= 0) {

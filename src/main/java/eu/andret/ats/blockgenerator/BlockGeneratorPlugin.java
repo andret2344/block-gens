@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
@@ -11,7 +11,6 @@ import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import eu.andret.ats.blockgenerator.entity.NamedItem;
 import eu.andret.ats.blockgenerator.utils.ConfigLoader;
 import eu.andret.ats.blockgenerator.utils.RandomCollection;
-import lombok.Getter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +24,9 @@ import java.util.stream.Collectors;
 
 @Generated("Main class")
 public class BlockGeneratorPlugin extends JavaPlugin {
-	@Getter
+	@NotNull
 	private final List<GeneratorPattern> patternList = new ArrayList<>();
+	@NotNull
 	private final ConfigLoader configLoader = new ConfigLoader(this);
 
 	@Override
@@ -42,36 +42,36 @@ public class BlockGeneratorPlugin extends JavaPlugin {
 		final AnnotatedCommand<BlockGeneratorPlugin> command = CommandManager
 				.registerCommand(BlockGeneratorCommand.class, this);
 		command.addArgumentCompleter("generatorName", () -> patternList.stream()
-				.map(GeneratorPattern::getGeneratorItem)
-				.map(NamedItem::getName)
+				.map(GeneratorPattern::generatorItem)
+				.map(NamedItem::name)
 				.collect(Collectors.toSet()));
 		command.addArgumentMapper("generatorName", NamedItem.class, name -> patternList.stream()
-						.map(GeneratorPattern::getGeneratorItem)
-						.filter(item -> item.getName().equals(name))
+						.map(GeneratorPattern::generatorItem)
+						.filter(item -> item.name().equals(name))
 						.findAny()
 						.orElse(null),
 				FallbackConstants.ON_NULL);
 		command.addArgumentCompleter("generatedName", () -> patternList.stream()
-				.map(GeneratorPattern::getGeneratedItem)
-				.map(NamedItem::getName)
+				.map(GeneratorPattern::generatedItem)
+				.map(NamedItem::name)
 				.toList());
 		command.addArgumentMapper("generatedName", NamedItem.class, name -> patternList.stream()
-						.map(GeneratorPattern::getGeneratedItem)
-						.filter(item -> item.getName().equals(name))
+						.map(GeneratorPattern::generatedItem)
+						.filter(item -> item.name().equals(name))
 						.findAny()
 						.orElse(null),
 				FallbackConstants.ON_NULL);
 		command.addArgumentCompleter("itemName", () -> patternList.stream()
-				.map(GeneratorPattern::getDropItems)
+				.map(GeneratorPattern::dropItems)
 				.map(RandomCollection::getItems)
 				.flatMap(Collection::stream)
-				.map(NamedItem::getName)
+				.map(NamedItem::name)
 				.toList());
 		command.addArgumentMapper("itemName", NamedItem.class, name -> patternList.stream()
-						.map(GeneratorPattern::getDropItems)
+						.map(GeneratorPattern::dropItems)
 						.map(RandomCollection::getItems)
 						.flatMap(Collection::stream)
-						.filter(item -> item.getName().equals(name))
+						.filter(item -> item.name().equals(name))
 						.findAny()
 						.orElse(null),
 				FallbackConstants.ON_NULL);
@@ -84,7 +84,12 @@ public class BlockGeneratorPlugin extends JavaPlugin {
 	@NotNull
 	public Optional<GeneratorPattern> getPattern(@NotNull final String name) {
 		return patternList.stream()
-				.filter(generatorPattern -> generatorPattern.getName().equals(name))
+				.filter(generatorPattern -> generatorPattern.name().equals(name))
 				.findFirst();
+	}
+
+	@NotNull
+	public List<GeneratorPattern> getPatternList() {
+		return patternList;
 	}
 }

@@ -1,7 +1,7 @@
 plugins {
+	id 'org.barfuin.gradle.jacocolog' version '3.1.0'
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
 	id 'kr.entree.spigradle' version '2.4.2'
-	id 'org.barfuin.gradle.jacocolog' version '3.1.0'
 }
 
 apply plugin: 'idea'
@@ -21,21 +21,14 @@ repositories {
 
 dependencies {
 	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
-	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
-	compileOnly group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
+	compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
 	implementation group: 'eu.andret', name: 'ats-arguments', version: argumentsVersion
-	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.0'
-	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
+	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.1'
 
-	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
-	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
 	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.24.2'
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.2.0'
 	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
-	testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.6.1'
-	testImplementation group: 'org.mockito', name: 'mockito-inline', version: '4.6.1'
-	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
+	testImplementation group: 'org.testng', name: 'testng', version: '7.7.1'
 }
 
 compileJava.options.compilerArgs << '-parameters' << '-g' << '-Xlint:deprecation' << '-Xlint:unchecked'
@@ -64,15 +57,24 @@ spigot {
 }
 
 test {
-	useJUnitPlatform()
-	finalizedBy jacocoAggregatedReport
+	useTestNG()
+	finalizedBy jacocoTestCoverageVerification, jacocoAggregatedReport
+}
+
+jacocoTestReport {
+	reports.xml.required = true
+}
+
+jacocoLogTestCoverage {
+	logAlways = false
+	maxDecimalDigits = 2
 }
 
 jacocoTestCoverageVerification {
 	violationRules {
 		rule {
 			limit {
-				minimum = 0
+				minimum = 0.1
 			}
 		}
 	}

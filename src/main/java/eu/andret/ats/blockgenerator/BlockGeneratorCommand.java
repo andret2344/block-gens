@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
@@ -25,8 +25,8 @@ public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGenerat
 	@Argument(description = "Puts generator item into inventory", executorType = ExecutorType.PLAYER,
 			permission = "ats.blockgenerator.get")
 	public String generator(@Mapper("generatorName") @Completer("generatorName") final NamedItem generator) {
-		((Player) sender).getInventory().addItem(generator.getItemStack());
-		return "Generator block: \"" + generator.getName() + "\"";
+		((Player) sender).getInventory().addItem(generator.itemStack());
+		return "Generator block: \"" + generator.name() + "\"";
 	}
 
 	@ArgumentFallback("generatorName")
@@ -37,8 +37,8 @@ public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGenerat
 	@Argument(description = "Puts generator item into inventory", executorType = ExecutorType.PLAYER,
 			permission = "ats.blockgenerator.get")
 	public String generated(@Mapper("generatedName") @Completer("generatedName") final NamedItem generated) {
-		((Player) sender).getInventory().addItem(generated.getItemStack());
-		return "Generated block: \"" + generated.getName() + "\"";
+		((Player) sender).getInventory().addItem(generated.itemStack());
+		return "Generated block: \"" + generated.name() + "\"";
 	}
 
 	@ArgumentFallback("generatedName")
@@ -49,8 +49,8 @@ public class BlockGeneratorCommand extends AnnotatedCommandExecutor<BlockGenerat
 	@Argument(description = "Puts generator item into inventory", executorType = ExecutorType.PLAYER,
 			permission = "ats.blockgenerator.get")
 	public String item(@Mapper("itemName") @Completer("itemName") final NamedItem item) {
-		((Player) sender).getInventory().addItem(item.getItemStack());
-		return "Drop item: \"" + item.getName() + "\"";
+		((Player) sender).getInventory().addItem(item.itemStack());
+		return "Drop item: \"" + item.name() + "\"";
 	}
 
 	@ArgumentFallback("itemName")

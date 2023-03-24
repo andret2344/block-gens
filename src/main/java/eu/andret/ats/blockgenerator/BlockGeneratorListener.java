@@ -1,12 +1,11 @@
 /*
- * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
-import lombok.AllArgsConstructor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,26 +26,32 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-@AllArgsConstructor
 public class BlockGeneratorListener implements Listener {
 	private static final String GENERATOR = "generator";
 
-	private final BlockGeneratorPlugin plugin;
+	@NotNull
 	private final Map<Block, Integer> schedulers = new HashMap<>();
+
+	@NotNull
+	private final BlockGeneratorPlugin plugin;
+
+	public BlockGeneratorListener(@NotNull final BlockGeneratorPlugin plugin) {
+		this.plugin = plugin;
+	}
 
 	@EventHandler
 	public void place(@NotNull final BlockPlaceEvent event) {
 		final Block placed = event.getBlock();
 		plugin.getPatternList()
 				.stream()
-				.filter(pattern -> Objects.equals(pattern.getGeneratorItem().getItemStack(), event.getItemInHand()))
+				.filter(pattern -> Objects.equals(pattern.generatorItem().itemStack(), event.getItemInHand()))
 				.findFirst()
 				.map(pattern -> new Generator(pattern, placed))
 				.ifPresent(generator -> {
-					final GeneratorPattern pattern = generator.getPattern();
+					final GeneratorPattern pattern = generator.pattern();
 					final Block relative = placed.getRelative(0, 1, 0);
-					relative.setType(pattern.getGeneratedItem().getItemStack().getType());
-					placed.setMetadata(GENERATOR, new FixedMetadataValue(plugin, pattern.getName()));
+					relative.setType(pattern.generatedItem().itemStack().getType());
+					placed.setMetadata(GENERATOR, new FixedMetadataValue(plugin, pattern.name()));
 				});
 	}
 
@@ -62,16 +67,16 @@ public class BlockGeneratorListener implements Listener {
 			event.setCancelled(true);
 			brokenBlock.setType(Material.AIR);
 			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())
-					&& !pattern.getDropItems().isEmpty()) {
-				final ItemStack dropItemStack = pattern.getDropItems().next().getItemStack();
+					&& !pattern.dropItems().isEmpty()) {
+				final ItemStack dropItemStack = pattern.dropItems().next().itemStack();
 				Optional.of(brokenBlock)
 						.map(Block::getLocation)
 						.map(Location::getWorld)
 						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), dropItemStack));
 			}
-			final Material material = pattern.getGeneratedItem().getItemStack().getType();
+			final Material material = pattern.generatedItem().itemStack().getType();
 			final int id = plugin.getServer().getScheduler()
-					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.getDelay());
+					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.delay());
 			schedulers.put(relative, id);
 		});
 	}
@@ -91,7 +96,7 @@ public class BlockGeneratorListener implements Listener {
 						.map(Block::getLocation)
 						.map(Location::getWorld)
 						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(),
-								pattern.getGeneratorItem().getItemStack()));
+								pattern.generatorItem().itemStack()));
 			}
 			brokenBlock.setType(Material.AIR);
 			brokenBlock.removeMetadata(GENERATOR, plugin);

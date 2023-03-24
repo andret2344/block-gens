@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
@@ -9,16 +9,16 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class BlockGeneratorCommandTest {
+public class BlockGeneratorCommandTest {
 	@Test
 	void correctGenerator() {
 		// given
@@ -33,7 +33,7 @@ class BlockGeneratorCommandTest {
 		final String result = blockGeneratorCommand.generator(new NamedItem("test", itemStack));
 
 		// then
-		assertEquals("Generator block: \"test\"", result);
+		assertThat(result).isEqualTo("Generator block: \"test\"");
 		verify(inventory, times(1)).addItem(itemStack);
 	}
 
@@ -50,7 +50,7 @@ class BlockGeneratorCommandTest {
 		final String result = blockGeneratorCommand.generator("test");
 
 		// then
-		assertEquals("No generator block found: \"test\"", result);
+		assertThat(result).isEqualTo("No generator block found: \"test\"");
 		verify(inventory, times(0)).addItem(any(ItemStack.class));
 	}
 
@@ -68,7 +68,7 @@ class BlockGeneratorCommandTest {
 		final String result = blockGeneratorCommand.generated(new NamedItem("test", itemStack));
 
 		// then
-		assertEquals("Generated block: \"test\"", result);
+		assertThat(result).isEqualTo("Generated block: \"test\"");
 		verify(inventory, times(1)).addItem(itemStack);
 	}
 
@@ -85,7 +85,7 @@ class BlockGeneratorCommandTest {
 		final String result = blockGeneratorCommand.generated("test");
 
 		// then
-		assertEquals("No generated block found: \"test\"", result);
+		assertThat(result).isEqualTo("No generated block found: \"test\"");
 		verify(inventory, times(0)).addItem(any(ItemStack.class));
 	}
 
@@ -103,7 +103,7 @@ class BlockGeneratorCommandTest {
 		final String result = blockGeneratorCommand.item(new NamedItem("test", itemStack));
 
 		// then
-		assertEquals("Drop item: \"test\"", result);
+		assertThat(result).isEqualTo("Drop item: \"test\"");
 		verify(inventory, times(1)).addItem(itemStack);
 	}
 
@@ -120,7 +120,7 @@ class BlockGeneratorCommandTest {
 		final String result = blockGeneratorCommand.item("test");
 
 		// then
-		assertEquals("No drop item found: \"test\"", result);
+		assertThat(result).isEqualTo("No drop item found: \"test\"");
 		verify(inventory, times(0)).addItem(any(ItemStack.class));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2022. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator.utils;
@@ -7,8 +7,6 @@ package eu.andret.ats.blockgenerator.utils;
 import eu.andret.ats.blockgenerator.BlockGeneratorPlugin;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import eu.andret.ats.blockgenerator.entity.NamedItem;
-import lombok.NonNull;
-import lombok.Value;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -27,11 +25,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-@Value
 public class ConfigLoader {
-	private static final char PARAGRAPH = '\u00A7';
+	private static final char PARAGRAPH = '§';
 	@NotNull
-	BlockGeneratorPlugin plugin;
+	private final BlockGeneratorPlugin plugin;
+
+	public ConfigLoader(@NotNull final BlockGeneratorPlugin plugin) {
+		this.plugin = plugin;
+	}
 
 	@NotNull
 	public List<GeneratorPattern> loadGeneratorPatterns() {
@@ -63,18 +64,18 @@ public class ConfigLoader {
 		final String generator = configurationSection.getString("blocks.generator");
 		final String generated = configurationSection.getString("blocks.generated");
 		final NamedItem generatorNamedItem = blocks.stream()
-				.filter(namedItem -> namedItem.getName().equals(generator))
+				.filter(namedItem -> namedItem.name().equals(generator))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("No '" + generator
 						+ "' in item list found. Check config."));
 		final NamedItem generatedNamedItem = blocks.stream()
-				.filter(namedItem -> namedItem.getName().equals(generated))
+				.filter(namedItem -> namedItem.name().equals(generated))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("No '" + generated
 						+ "' in block list found. Check config."));
 		verifyBlock(generatorNamedItem);
 		verifyBlock(generatedNamedItem);
-		loadCrafting(configurationSection, generatorNamedItem.getItemStack());
+		loadCrafting(configurationSection, generatorNamedItem.itemStack());
 		return new GeneratorPattern(configurationSection.getName(),
 				configurationSection.getLong("delay", 1L),
 				generatorNamedItem,
@@ -83,8 +84,8 @@ public class ConfigLoader {
 	}
 
 	private void verifyBlock(@NotNull final NamedItem namedItem) {
-		if (!namedItem.getItemStack().getType().isBlock()) {
-			throw new IllegalArgumentException(namedItem.getName() + " is not a block. Block required.");
+		if (!namedItem.itemStack().getType().isBlock()) {
+			throw new IllegalArgumentException(namedItem.name() + " is not a block. Block required.");
 		}
 	}
 
@@ -118,9 +119,9 @@ public class ConfigLoader {
 						.map(section -> section.getConfigurationSection("drops"))
 						.map(section -> section.getConfigurationSection(itemName))
 						.ifPresent(item -> items.stream()
-								.filter(namedItem -> namedItem.getName().equals(itemName))
+								.filter(namedItem -> namedItem.name().equals(itemName))
 								.findAny()
-								.map(NamedItem::getItemStack)
+								.map(NamedItem::itemStack)
 								.map(ItemStack::getType)
 								.map(type -> new ItemStack(type, item.getInt("count")))
 								.map(itemStack -> new NamedItem(itemName, itemStack))
@@ -128,8 +129,8 @@ public class ConfigLoader {
 		return collection;
 	}
 
-	private void createRecipe(@NonNull final ItemStack target, @NonNull final List<String> shape,
-							  @NonNull final Map<Character, Material> mapping) {
+	private void createRecipe(@NotNull final ItemStack target, @NotNull final List<String> shape,
+							  @NotNull final Map<Character, Material> mapping) {
 		final ShapedRecipe recipe = new ShapedRecipe(createKey(target), target);
 		recipe.shape(shape.toArray(new String[0]));
 		mapping.forEach(recipe::setIngredient);
@@ -137,7 +138,7 @@ public class ConfigLoader {
 	}
 
 	@NotNull
-	private NamespacedKey createKey(@NonNull final ItemStack target) {
+	private NamespacedKey createKey(@NotNull final ItemStack target) {
 		return new NamespacedKey(plugin, Optional.of(target)
 				.map(ItemStack::getItemMeta)
 				.map(ItemMeta::getDisplayName)

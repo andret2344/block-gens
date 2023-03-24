@@ -17,14 +17,16 @@ import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.junit.jupiter.api.Test;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.mockito.MockedStatic;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,38 +34,57 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-class ConfigLoaderTest {
+public class ConfigLoaderTest {
 	private final BlockGeneratorPlugin plugin = mock(BlockGeneratorPlugin.class);
 	private final ConfigLoader configLoader = new ConfigLoader(plugin);
 
 	@Test
 	void loadGeneratorPatterns() throws IOException, InvalidConfigurationException, InvalidDescriptionException {
 		// given
-		FileConfiguration configuration = new YamlConfiguration();
-		configuration.load(
-				new File(Objects.requireNonNull(getClass().getClassLoader().getResource("config.yml")).getFile()));
+		final FileConfiguration configuration = getFileConfiguration();
 		when(plugin.getServer()).thenReturn(mock(Server.class));
 		when(plugin.getName()).thenReturn("pluginName");
 		when(plugin.getConfig()).thenReturn(configuration);
-		when(plugin.getDescription()).thenReturn(
-				new PluginDescriptionFile(
-						new FileInputStream(Objects.requireNonNull(getClass().getClassLoader().getResource("plugin.yml")).getFile())));
-		ItemFactory itemFactory = mock(ItemFactory.class);
+		when(plugin.getDescription()).thenReturn(getPluginDescriptionFile());
+		final ItemFactory itemFactory = mock(ItemFactory.class);
 		when(itemFactory.equals(any(), any())).thenReturn(true);
-		try (MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {
+		try (final MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {
 			utilities.when(Bukkit::getItemFactory).thenReturn(itemFactory);
 			// when
-			List<GeneratorPattern> result = configLoader.loadGeneratorPatterns();
+			final List<GeneratorPattern> result = configLoader.loadGeneratorPatterns();
 			// then
 			assertThat(result).containsExactlyInAnyOrderElementsOf(createGeneratorPatterns());
 		}
 	}
 
+	@NotNull
+	private PluginDescriptionFile getPluginDescriptionFile() throws IOException, InvalidConfigurationException,
+			InvalidDescriptionException {
+		final URL resource = getClass().getClassLoader().getResource("plugin.yml");
+		if (resource == null) {
+			throw new InvalidConfigurationException("The file \"test/resources/plugin.yml\" does not exist!");
+		}
+		return new PluginDescriptionFile(new FileInputStream(resource.getFile()));
+	}
+
+	@NotNull
+	private FileConfiguration getFileConfiguration() throws IOException, InvalidConfigurationException {
+		final FileConfiguration configuration = new YamlConfiguration();
+		final URL resource = getClass().getClassLoader().getResource("config.yml");
+		if (resource == null) {
+			throw new InvalidConfigurationException("The file \"test/resources/config.yml\" does not exist!");
+		}
+		configuration.load(new File(resource.getFile()));
+		return configuration;
+	}
+
+	@NotNull
+	@Unmodifiable
 	private List<GeneratorPattern> createGeneratorPatterns() {
-		RandomCollection<NamedItem> randomCollection1 = new RandomCollection<>();
+		final RandomCollection<NamedItem> randomCollection1 = new RandomCollection<>();
 		randomCollection1.add(new NamedItem("bread", new ItemStack(Material.BREAD)), 1);
 		randomCollection1.add(new NamedItem("apple", new ItemStack(Material.APPLE, 2)), 1);
-		RandomCollection<NamedItem> randomCollection2 = new RandomCollection<>();
+		final RandomCollection<NamedItem> randomCollection2 = new RandomCollection<>();
 		randomCollection2.add(new NamedItem("obsidian", new ItemStack(Material.OBSIDIAN)), 1);
 		return List.of(
 				new GeneratorPattern("sponge", 1,

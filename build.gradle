@@ -25,6 +25,7 @@ dependencies {
 	implementation group: 'eu.andret', name: 'ats-arguments', version: argumentsVersion
 	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.1'
 
+	testCompileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
 	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.24.2'
 	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.2.0'
 	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
@@ -74,7 +75,7 @@ jacocoTestCoverageVerification {
 	violationRules {
 		rule {
 			limit {
-				minimum = 0.1
+				minimum = 0.5
 			}
 		}
 	}

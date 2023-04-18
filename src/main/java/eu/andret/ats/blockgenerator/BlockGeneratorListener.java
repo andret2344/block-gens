@@ -67,8 +67,11 @@ public class BlockGeneratorListener implements Listener {
 		plugin.getPattern(relativeMetadata.get(0).asString()).ifPresent(pattern -> {
 			event.setCancelled(true);
 			brokenBlock.setType(Material.AIR);
-			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())
-					&& !pattern.dropItems().isEmpty()) {
+			final Material material = pattern.generatedItem().itemStack().getType();
+			final int id = plugin.getServer().getScheduler()
+					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.delay());
+			plugin.addScheduler(relative, id);
+			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())) {
 				final NamedItem next = pattern.dropItems().next();
 				if (next == null) {
 					return;
@@ -79,10 +82,6 @@ public class BlockGeneratorListener implements Listener {
 						.map(Location::getWorld)
 						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), dropItemStack));
 			}
-			final Material material = pattern.generatedItem().itemStack().getType();
-			final int id = plugin.getServer().getScheduler()
-					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.delay());
-			schedulers.put(relative, id);
 		});
 	}
 

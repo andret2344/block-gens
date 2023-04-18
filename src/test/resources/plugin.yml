@@ -4,15 +4,15 @@ version: 2.4.2
 description: "A plugin that allows to craft the blocks, that are generating other\
   \ blocks."
 authors:
- - Andret
+  - Andret
 api-version: 1.17
 libraries:
- - org.jetbrains:annotations:23.0.0
+  - org.jetbrains:annotations:23.0.0
 commands:
   blockgenerator:
     aliases:
-     - bg
-     - generator
+      - bg
+      - generator
 permissions:
   ats.blockgenerator.*:
     children:

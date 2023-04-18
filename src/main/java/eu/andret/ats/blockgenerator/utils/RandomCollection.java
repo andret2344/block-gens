@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
+ * Copyright (c) 2018 Andret Tools System. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator.utils;
@@ -44,7 +44,7 @@ public class RandomCollection<E> {
 	}
 
 	public boolean isEmpty() {
-		return elements.size() == 0;
+		return elements.isEmpty();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
+ * Copyright (c) 2018 Andret Tools System. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
@@ -98,7 +98,7 @@ public class BlockGeneratorPlugin extends JavaPlugin {
 		return patternList;
 	}
 
-	public void addScheduler(Block block, int id) {
+	public void addScheduler(@NotNull final Block block, final int id) {
 		schedulers.put(block, id);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
+ * Copyright (c) 2018 Andret Tools System. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
@@ -139,7 +139,7 @@ public class BlockGeneratorListenerTest {
 		when(brokenBlock.getLocation()).thenReturn(location);
 		when(blockGeneratorPlugin.getServer()).thenReturn(server);
 		when(server.getScheduler()).thenReturn(scheduler);
-		RandomCollection<NamedItem> randomCollection = new RandomCollection<>();
+		final RandomCollection<NamedItem> randomCollection = new RandomCollection<>();
 		final ItemFactory itemFactory = mock(ItemFactory.class);
 		when(itemFactory.equals(any(), any())).thenReturn(true);
 		try (final MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {
@@ -186,7 +186,7 @@ public class BlockGeneratorListenerTest {
 		when(brokenBlock.getLocation()).thenReturn(location);
 		when(blockGeneratorPlugin.getServer()).thenReturn(server);
 		when(server.getScheduler()).thenReturn(scheduler);
-		RandomCollection<NamedItem> randomCollection = new RandomCollection<>();
+		final RandomCollection<NamedItem> randomCollection = new RandomCollection<>();
 		final ItemFactory itemFactory = mock(ItemFactory.class);
 		when(itemFactory.equals(any(), any())).thenReturn(true);
 		try (final MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {
@@ -319,7 +319,7 @@ public class BlockGeneratorListenerTest {
 		when(brokenBlock.getLocation()).thenReturn(location);
 		when(blockGeneratorPlugin.getServer()).thenReturn(server);
 		when(server.getScheduler()).thenReturn(scheduler);
-		RandomCollection<NamedItem> randomCollection = new RandomCollection<>();
+		final RandomCollection<NamedItem> randomCollection = new RandomCollection<>();
 		final ItemFactory itemFactory = mock(ItemFactory.class);
 		when(itemFactory.equals(any(), any())).thenReturn(true);
 		try (final MockedStatic<Bukkit> utilities = mockStatic(Bukkit.class)) {

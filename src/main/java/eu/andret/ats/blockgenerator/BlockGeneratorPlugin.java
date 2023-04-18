@@ -12,13 +12,16 @@ import eu.andret.ats.blockgenerator.entity.NamedItem;
 import eu.andret.ats.blockgenerator.utils.ConfigLoader;
 import eu.andret.ats.blockgenerator.utils.RandomCollection;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.processing.Generated;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,6 +31,8 @@ public class BlockGeneratorPlugin extends JavaPlugin {
 	private final List<GeneratorPattern> patternList = new ArrayList<>();
 	@NotNull
 	private final ConfigLoader configLoader = new ConfigLoader(this);
+	@NotNull
+	private final Map<Block, Integer> schedulers = new HashMap<>();
 
 	@Override
 	public void onEnable() {
@@ -91,5 +96,18 @@ public class BlockGeneratorPlugin extends JavaPlugin {
 	@NotNull
 	public List<GeneratorPattern> getPatternList() {
 		return patternList;
+	}
+
+	public void addScheduler(Block block, int id) {
+		schedulers.put(block, id);
+	}
+
+	public boolean isSchedulerPresent(@NotNull final Block block) {
+		return schedulers.containsKey(block);
+	}
+
+	public void cancelScheduler(@NotNull final Block block) {
+		getServer().getScheduler().cancelTask(schedulers.get(block));
+		schedulers.remove(block);
 	}
 }

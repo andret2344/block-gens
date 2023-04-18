@@ -21,17 +21,12 @@ import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 public class BlockGeneratorListener implements Listener {
 	private static final String GENERATOR = "generator";
-
-	@NotNull
-	private final Map<Block, Integer> schedulers = new HashMap<>();
 
 	@NotNull
 	private final BlockGeneratorPlugin plugin;
@@ -105,9 +100,8 @@ public class BlockGeneratorListener implements Listener {
 			brokenBlock.setType(Material.AIR);
 			brokenBlock.removeMetadata(GENERATOR, plugin);
 			final Block relative = brokenBlock.getRelative(0, 1, 0);
-			if (schedulers.containsKey(relative)) {
-				plugin.getServer().getScheduler().cancelTask(schedulers.get(relative));
-				schedulers.remove(relative);
+			if (plugin.isSchedulerPresent(relative)) {
+				plugin.cancelScheduler(relative);
 			}
 		});
 	}

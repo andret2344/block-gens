@@ -1,11 +1,12 @@
 /*
- * Copyright Andret Tools System (c) 2018-2023. Copying and modifying allowed only keeping git link reference.
+ * Copyright (c) 2018 Andret Tools System. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator;
 
 import eu.andret.ats.blockgenerator.entity.Generator;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
+import eu.andret.ats.blockgenerator.entity.NamedItem;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,17 +21,12 @@ import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 public class BlockGeneratorListener implements Listener {
 	private static final String GENERATOR = "generator";
-
-	@NotNull
-	private final Map<Block, Integer> schedulers = new HashMap<>();
 
 	@NotNull
 	private final BlockGeneratorPlugin plugin;
@@ -66,18 +62,21 @@ public class BlockGeneratorListener implements Listener {
 		plugin.getPattern(relativeMetadata.get(0).asString()).ifPresent(pattern -> {
 			event.setCancelled(true);
 			brokenBlock.setType(Material.AIR);
-			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())
-					&& !pattern.dropItems().isEmpty()) {
-				final ItemStack dropItemStack = pattern.dropItems().next().itemStack();
+			final Material material = pattern.generatedItem().itemStack().getType();
+			final int id = plugin.getServer().getScheduler()
+					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.delay());
+			plugin.addScheduler(relative, id);
+			if (Arrays.asList(GameMode.SURVIVAL, GameMode.ADVENTURE).contains(event.getPlayer().getGameMode())) {
+				final NamedItem next = pattern.dropItems().next();
+				if (next == null) {
+					return;
+				}
+				final ItemStack dropItemStack = next.itemStack();
 				Optional.of(brokenBlock)
 						.map(Block::getLocation)
 						.map(Location::getWorld)
 						.ifPresent(world -> world.dropItemNaturally(brokenBlock.getLocation(), dropItemStack));
 			}
-			final Material material = pattern.generatedItem().itemStack().getType();
-			final int id = plugin.getServer().getScheduler()
-					.scheduleSyncDelayedTask(plugin, () -> brokenBlock.setType(material), pattern.delay());
-			schedulers.put(relative, id);
 		});
 	}
 
@@ -101,9 +100,8 @@ public class BlockGeneratorListener implements Listener {
 			brokenBlock.setType(Material.AIR);
 			brokenBlock.removeMetadata(GENERATOR, plugin);
 			final Block relative = brokenBlock.getRelative(0, 1, 0);
-			if (schedulers.containsKey(relative)) {
-				plugin.getServer().getScheduler().cancelTask(schedulers.get(relative));
-				schedulers.remove(relative);
+			if (plugin.isSchedulerPresent(relative)) {
+				plugin.cancelScheduler(relative);
 			}
 		});
 	}

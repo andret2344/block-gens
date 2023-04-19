@@ -23,10 +23,11 @@ dependencies {
 	compileOnly group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
 	compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
 	implementation group: 'eu.andret', name: 'ats-arguments', version: argumentsVersion
-	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.1'
+	implementation group: 'org.bstats', name: 'bstats-bukkit', version: '3.0.2'
 
+	testCompileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
 	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.24.2'
-	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.2.0'
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.3.0'
 	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
 	testImplementation group: 'org.testng', name: 'testng', version: '7.7.1'
 }
@@ -39,7 +40,7 @@ spigot {
 	apiVersion = '1.17'
 	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 	version = project.version
-	libraries = ['org.jetbrains:annotations:23.0.0']
+	libraries = ['org.jetbrains:annotations:24.0.1']
 
 	//noinspection GroovyAssignabilityCheck
 	commands {
@@ -62,21 +63,26 @@ test {
 }
 
 jacocoTestReport {
-	reports.xml.required = true
-}
-
-jacocoLogTestCoverage {
-	logAlways = false
-	maxDecimalDigits = 2
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: ['**/*Plugin.class'])
+		}))
+	}
 }
 
 jacocoTestCoverageVerification {
 	violationRules {
 		rule {
 			limit {
-				minimum = 0.1
+				minimum = 0.8
 			}
 		}
+	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: ['**/*Plugin.*'])
+		}))
 	}
 }
 

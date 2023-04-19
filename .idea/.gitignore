@@ -8,6 +8,7 @@
 
 /sonarlint/
 /workspace.xml
+/jpa-buddy.xml
 /gradle.xml
 /compiler.xml
 /discord.xml

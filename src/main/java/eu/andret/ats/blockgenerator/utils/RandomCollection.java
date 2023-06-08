@@ -43,10 +43,6 @@ public class RandomCollection<E> {
 		return new ArrayList<>(elements.keySet());
 	}
 
-	public boolean isEmpty() {
-		return elements.isEmpty();
-	}
-
 	@Override
 	@Generated("IntelliJ")
 	public boolean equals(final Object o) {

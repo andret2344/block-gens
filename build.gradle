@@ -1,7 +1,7 @@
 plugins {
 	id 'org.barfuin.gradle.jacocolog' version '3.1.0'
-	id 'com.github.johnrengelman.shadow' version '7.1.2'
-	id 'kr.entree.spigradle' version '2.4.2'
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
+	id 'kr.entree.spigradle' version '2.4.3'
 }
 
 apply plugin: 'idea'
@@ -27,9 +27,9 @@ dependencies {
 
 	testCompileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
 	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.24.2'
-	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.3.0'
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.3.1'
 	testImplementation group: 'org.spigotmc', name: 'spigot-api', version: "${spigotVersion}-R0.1-SNAPSHOT"
-	testImplementation group: 'org.testng', name: 'testng', version: '7.7.1'
+	testImplementation group: 'org.testng', name: 'testng', version: '7.8.0'
 }
 
 compileJava.options.compilerArgs << '-parameters' << '-g' << '-Xlint:deprecation' << '-Xlint:unchecked'
@@ -123,6 +123,7 @@ publishing {
 	repositories {
 		maven {
 			url 'https://gitlab.com/api/v4/projects/6382356/packages/maven'
+			//noinspection GroovyAssignabilityCheck
 			credentials(HttpHeaderCredentials) {
 				name = 'Job-Token'
 				value = System.getenv('CI_JOB_TOKEN')

@@ -1,12 +1,6 @@
 image: gradle:8-jdk17-alpine
 
-cache:
-  paths:
-    - .gradle/wrapper
-    - .gradle/caches
-
 before_script:
-  - export GRADLE_USER_HOME=`pwd`/.gradle
   - chmod a+x gradlew
 
 stages:
@@ -14,32 +8,34 @@ stages:
   - verify
   - deploy
 
-build:
+compile:
   stage: build
   script:
     - ./gradlew assemble
   artifacts:
     paths:
+      - build/classes/**
       - build/libs/*.jar
 
-junit:
+unit:
   stage: verify
   dependencies:
-    - build
+    - compile
   script:
     - ./gradlew test
   coverage: '/    - Instruction Coverage: ([0-9.]+)%/'
   artifacts:
     reports:
       junit: build/test-results/test/**.xml
+    paths:
+      - build/reports/jacoco/jacocoAggregatedReport/html/
 
 publish:
   stage: deploy
   script:
-    - ./gradlew clean
     - ./gradlew publish
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: manual
     - when: never
 
@@ -67,7 +63,7 @@ badges:
       - arguments.svg
     when: always
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: manual
     - when: never
 
@@ -76,10 +72,10 @@ pages:
   dependencies:
     - junit
   script:
-    - mv build/reports/jacoco/test/html/ public/
+    - mv build/reports/jacoco/jacocoAggregatedReport/html/ public/
   artifacts:
     paths:
       - public/**
   only:
-    - master
+    - main
   when: manual

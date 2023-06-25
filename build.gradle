@@ -40,6 +40,7 @@ spigot {
 	apiVersion = '1.17'
 	description = 'A plugin that allows to craft the blocks, that are generating other blocks.'
 	version = project.version
+	website = 'https://www.spigotmc.org/resources/ats-andret-tools-system-block-generator-craft-infinite-block-generator.96216/'
 	libraries = ['org.jetbrains:annotations:24.0.1']
 
 	//noinspection GroovyAssignabilityCheck

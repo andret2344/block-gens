@@ -49,6 +49,7 @@ jar:
   when: manual
 
 badges:
+  image: gradle:8-jdk17
   stage: deploy
   script:
     - apt-get -qq update

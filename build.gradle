@@ -117,7 +117,7 @@ publishing {
 			artifact tasks.packageJavadoc
 			groupId = project.group
 			version = project.version
-			artifactId = project.codeName
+			artifactId = project.artifact
 		}
 	}
 	repositories {
@@ -143,15 +143,3 @@ shadowJar {
 }
 
 build.dependsOn(shadowJar)
-
-tasks.register('spigotVersion') {
-	doLast {
-		println(spigotVersion)
-	}
-}
-
-tasks.register('argumentsVersion') {
-	doLast {
-		println(argumentsVersion)
-	}
-}

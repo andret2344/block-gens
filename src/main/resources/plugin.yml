@@ -1,0 +1,20 @@
+name: ATS-BlockGenerator
+main: eu.andret.ats.blockgenerator.BlockGeneratorPlugin
+version: ${project.version}
+author: Andret
+api-version: 1.17
+description: A plugin that allows to craft the blocks, that are generating other blocks.
+website: https://www.spigotmc.org/resources/ats-andret-tools-system-block-generator-craft-infinite-block-generator.96216/
+libraries:
+  - org.jetbrains:annotations:26.0.2
+
+commands:
+  blockgenerator:
+    description: Main command for the block generator plugin.
+    aliases: [ bg, generator ]
+
+permissions:
+  ats.blockgenerator.*:
+    description: Grants access to all block generator commands.
+    children:
+      ats.blockgenerator.get: true

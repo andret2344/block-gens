@@ -1,18 +1,20 @@
-# Default ignored files
-/shelf/
-# Editor-based HTTP Client requests
-/httpRequests/
-# Datasource local storage ignored files
 /dataSources/
-/dataSources.local.xml
-
+/httpRequests/
+/modules/
+/shelf/
 /sonarlint/
-/workspace.xml
-/jpa-buddy.xml
-/gradle.xml
+
 /compiler.xml
+/dataSources.local.xml
 /discord.xml
+/git_toolbox_blame.xml
+/git_toolbox_prj.xml
+/gradle.xml
+/intellij-javadocs-4.0.1.xml
 /jarRepositories.xml
 /jpa-buddy.xml
 /libraries
+/misc.xml
+/modules.xml
 /uiDesigner.xml
+/workspace.xml

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Andret Tools System. Copying and modifying allowed only keeping git link reference.
+ * Copyright Andret Tools System (c) 2025. Copying and modifying allowed only keeping git link reference.
  */
 
 package eu.andret.ats.blockgenerator.entity;

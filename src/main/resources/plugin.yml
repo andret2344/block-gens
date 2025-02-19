@@ -1,6 +1,6 @@
-name: ATS-BlockGenerator
+name: atsBlockGenerator
 main: eu.andret.ats.blockgenerator.BlockGeneratorPlugin
-version: ${project.version}
+version: 2.4.4
 author: Andret
 api-version: 1.17
 description: A plugin that allows to craft the blocks, that are generating other blocks.

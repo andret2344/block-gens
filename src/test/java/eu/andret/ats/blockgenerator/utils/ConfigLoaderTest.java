@@ -7,6 +7,7 @@ package eu.andret.ats.blockgenerator.utils;
 import eu.andret.ats.blockgenerator.BlockGeneratorPlugin;
 import eu.andret.ats.blockgenerator.entity.GeneratorPattern;
 import eu.andret.ats.blockgenerator.entity.NamedItem;
+import eu.andret.ats.blockgenerator.helper.ServerMock;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -42,7 +43,8 @@ public class ConfigLoaderTest {
 	void loadGeneratorPatterns() throws IOException, InvalidConfigurationException, InvalidDescriptionException {
 		// given
 		final FileConfiguration configuration = getFileConfiguration();
-		when(plugin.getServer()).thenReturn(mock(Server.class));
+		final Server server = ServerMock.newServer();
+		when(plugin.getServer()).thenReturn(server);
 		when(plugin.getName()).thenReturn("pluginName");
 		when(plugin.getConfig()).thenReturn(configuration);
 		when(plugin.getDescription()).thenReturn(getPluginDescriptionFile());
@@ -55,6 +57,7 @@ public class ConfigLoaderTest {
 			// then
 			assertThat(result).containsExactlyInAnyOrderElementsOf(createGeneratorPatterns());
 		}
+		ServerMock.unsetBukkitServer();
 	}
 
 	@NotNull

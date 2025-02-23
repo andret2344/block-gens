@@ -15,8 +15,8 @@ val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
 	compileOnly(libs.spigot.api)
 	compileOnly(libs.jetbrains.annotations)
-	implementation(libs.ats.arguments)
 	implementation(libs.bstats.bukkit)
+	implementation(libs.ats.arguments)
 
 	mockitoAgent(libs.mockito.core) { isTransitive = false }
 	testCompileOnly(libs.jetbrains.annotations)
@@ -66,7 +66,6 @@ tasks {
 	shadowJar {
 		archiveFileName.set("${project.name}-${project.version}.jar")
 		relocate("org.bstats", "${project.group}.blockgenerator.bstats")
-		relocate("org.json", "${project.group}.blockgenerator.json")
 	}
 
 	publishing {

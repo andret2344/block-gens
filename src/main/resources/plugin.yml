@@ -3,7 +3,7 @@ main: eu.andret.ats.blockgenerator.BlockGeneratorPlugin
 version: 2.4.4
 author: Andret
 api-version: 1.17
-description: A plugin that allows to craft the blocks, that are generating other blocks.
+description: A plugin that allows to craft blocks, that are generating other blocks.
 website: https://www.spigotmc.org/resources/ats-andret-tools-system-block-generator-craft-infinite-block-generator.96216/
 libraries:
   - org.jetbrains:annotations:26.0.2

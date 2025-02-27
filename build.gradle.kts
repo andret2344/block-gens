@@ -66,6 +66,7 @@ tasks {
 	shadowJar {
 		archiveFileName.set("${project.name}-${project.version}.jar")
 		relocate("org.bstats", "${project.group}.blockgenerator.bstats")
+		relocate("eu.andret.arguments", "${project.group}.blockgenerator.arguments")
 	}
 
 	publishing {

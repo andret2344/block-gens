@@ -108,8 +108,9 @@ generators; `command` the Lamp argument types and condition; `util` generic help
 - Build script reads project properties through `project.group`/`project.version` and
   `providers.gradleProperty(...)`, never `project.properties[...]` (deprecated, fails in Gradle 10).
 - CI is GitHub Actions. `build.yml` builds every push and PR and uploads the JaCoCo XML report
-  (`build/reports/jacoco/test/jacocoTestReport.xml`) to Codecov with the `CODECOV_TOKEN` secret. `release.yml` runs on a `v<version>` tag: checks the tag
-  against `gradle.properties`, extracts that version's section of `CHANGELOG.md` (run `./gradlew patchChangelog`
-  before tagging), then releases on GitHub, Modrinth (`mc-publish`, needs the `MODRINTH_PROJECT_ID` variable and
-  `MODRINTH_TOKEN` secret) and Hangar (`hangarPublish` in `build.gradle.kts`, needs the `HANGAR_PROJECT` variable and
-  `HANGAR_API_TOKEN` secret). A tag with a `-suffix` is a pre-release.
+  (`build/reports/jacoco/test/jacocoTestReport.xml`) to Codecov with the `CODECOV_TOKEN` secret. `release.yml` runs
+  on a `v<version>` tag: checks the tag against `gradle.properties`, extracts that version's section of `CHANGELOG.md`
+  (run `./gradlew patchChangelog` before tagging), then releases on GitHub, Modrinth (`mc-publish`, project ID
+  `WZxrLw1e` in the workflow, `MODRINTH_TOKEN` secret) and Hangar (`hangarPublish` in `build.gradle.kts`, project
+  `andret2344/BlockGens`, `HANGAR_API_TOKEN` secret). Each upload is skipped without its secret; a token is passed only
+  to the step that needs it. A tag with a `-suffix` is a pre-release.

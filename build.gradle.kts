@@ -101,7 +101,8 @@ changelog {
 hangarPublish {
 	publications.register("plugin") {
 		version = project.version.toString()
-		id = providers.gradleProperty("hangarProject").orElse("BlockGens")
+		// https://hangar.papermc.io/andret2344/BlockGens
+		id = "BlockGens"
 		channel = providers.gradleProperty("hangarChannel").orElse("Release")
 		// Written by `getChangelog --output-file` in the release workflow
 		changelog = providers.fileContents(layout.buildDirectory.file("release-notes.md")).asText.orElse("")

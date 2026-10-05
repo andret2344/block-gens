@@ -5,12 +5,11 @@ name: Release
 # A tag with a suffix, like v1.2.0-beta.1, goes out as a GitHub pre-release, a Modrinth beta and on the Hangar
 # "Snapshot" channel.
 #
-# Repository variables (Settings > Secrets and variables > Actions > Variables):
-#   MODRINTH_PROJECT_ID - the Modrinth project ID, the Modrinth upload is skipped without it
-#   HANGAR_PROJECT      - the Hangar project name, the Hangar upload is skipped without it
-# Repository secrets:
-#   MODRINTH_TOKEN      - a Modrinth personal access token with the "Create versions" scope
-#   HANGAR_API_TOKEN    - a Hangar API key with the "create_version" permission
+# Repository secrets (Settings > Secrets and variables > Actions), each upload is skipped without its secret:
+#   MODRINTH_TOKEN   - a Modrinth personal access token with the "Create versions" scope, uploads to
+#                      https://modrinth.com/plugin/blockgens (project ID WZxrLw1e, set below)
+#   HANGAR_API_TOKEN - a Hangar API key with the "create_version" permission, uploads to
+#                      https://hangar.papermc.io/andret2344/BlockGens (set in build.gradle.kts)
 
 on:
   push:
@@ -60,11 +59,18 @@ jobs:
           prerelease: ${{ env.PRERELEASE }}
           files: build/libs/BlockGens-${{ env.VERSION }}.jar
 
+      # Secrets cannot be used in `if`, and putting the tokens into the job's env would show them to every action
+      - name: Check for the tokens
+        id: tokens
+        run: |
+          echo "modrinth=${{ secrets.MODRINTH_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+          echo "hangar=${{ secrets.HANGAR_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
       - name: Release on Modrinth
-        if: vars.MODRINTH_PROJECT_ID != ''
+        if: steps.tokens.outputs.modrinth == 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-id: WZxrLw1e
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           name: BlockGens ${{ env.VERSION }}
           version: ${{ env.VERSION }}
@@ -77,10 +83,9 @@ jobs:
           game-versions: ${{ env.MINECRAFT_VERSIONS }}
 
       - name: Release on Hangar
-        if: vars.HANGAR_PROJECT != ''
+        if: steps.tokens.outputs.hangar == 'true'
         env:
           HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
         run: >
           ./gradlew publishPluginPublicationToHangar
-          -PhangarProject="${{ vars.HANGAR_PROJECT }}"
           -PhangarChannel="${{ env.PRERELEASE == 'true' && 'Snapshot' || 'Release' }}"

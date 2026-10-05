@@ -1,14 +1,12 @@
 <div align="center">
 
-# BlockGens
-
-**Craftable, fully configurable block generators for Paper servers.**
+![BlockGens - craftable, fully configurable block generators for Paper](.github/assets/banner.png)
 
 Place a generator and it keeps a block of your choice above itself. Break that block and it comes back after a delay,
 dropping items from a weighted drop table.
 
 [![Modrinth downloads](https://img.shields.io/modrinth/dt/blockgens?logo=modrinth&label=Modrinth)](https://modrinth.com/plugin/blockgens)
-[![Hangar downloads](https://img.shields.io/hangar/dt/BlockGens?label=Hangar)](https://hangar.papermc.io/Andret2344/BlockGens)
+[![Hangar downloads](https://img.shields.io/hangar/dt/BlockGens?label=Hangar)](https://hangar.papermc.io/andret2344/BlockGens)
 [![Latest release](https://img.shields.io/github/v/release/andret2344/block-gens?logo=github)](https://github.com/andret2344/block-gens/releases/latest)
 [![Minecraft versions](https://img.shields.io/modrinth/game-versions/blockgens?label=Minecraft)](https://modrinth.com/plugin/blockgens/versions)
 
@@ -19,7 +17,7 @@ dropping items from a weighted drop table.
 [![License](https://img.shields.io/github/license/andret2344/block-gens)](LICENSE)
 
 [Download on Modrinth](https://modrinth.com/plugin/blockgens) ·
-[Download on Hangar](https://hangar.papermc.io/Andret2344/BlockGens) ·
+[Download on Hangar](https://hangar.papermc.io/andret2344/BlockGens) ·
 [Report a bug](https://github.com/andret2344/block-gens/issues)
 
 </div>
@@ -40,7 +38,7 @@ dropping items from a weighted drop table.
 ## Installation
 
 1. Download the jar from [Modrinth](https://modrinth.com/plugin/blockgens),
-   [Hangar](https://hangar.papermc.io/Andret2344/BlockGens) or
+   [Hangar](https://hangar.papermc.io/andret2344/BlockGens) or
    [GitHub](https://github.com/andret2344/block-gens/releases/latest).
 2. Put it into the `plugins` folder of a Paper (or Purpur) 26.2+ server running Java 25.
 3. Start the server and edit `plugins/BlockGens/config.yml`, then run `/bg reload`.

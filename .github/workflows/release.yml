@@ -72,13 +72,18 @@ jobs:
             exit 1
           fi
 
+      # Nothing changes when main already has the version and its notes, e.g. when a deleted release is made again
       - name: Commit the release
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add gradle.properties CHANGELOG.md
-          git commit -m "Released $VERSION."
-          git push origin HEAD:main
+          if git diff --cached --quiet; then
+            echo "gradle.properties and CHANGELOG.md are already up to date, releasing the current commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Released $VERSION."
+            git push origin HEAD:main
+          fi
           echo "RELEASE_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
       - name: Draft the GitHub release

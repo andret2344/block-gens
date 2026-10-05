@@ -1,5 +1,8 @@
+# Names and lore use the MiniMessage format: https://docs.papermc.io/adventure/minimessage/format/
+
 generators:
   sponge:
+    # Ticks until the generated block comes back (20 ticks = 1 second)
     delay: 1
     blocks:
       generator: sponge
@@ -11,6 +14,7 @@ generators:
       apple:
         weight: 1
         count: 2
+    # Optional - without it the generator can only be given with the command
     crafting:
       shape:
         - 'SSS'
@@ -19,6 +23,10 @@ generators:
       mapping:
         'S': STONE
         'P': PISTON
+    # Optional - prevent, drop or remove; defaults: generator drop, generated remove
+    explosion:
+      generator: drop
+      generated: remove
   dirt:
     delay: 10
     blocks:
@@ -40,23 +48,22 @@ generators:
 blocks:
   sponge:
     material: SPONGE
-    name: '&5Creates food!'
+    name: '<dark_purple>Creates food!'
     lore:
       - 'I will give you'
-      - '&4MANY&r fooodstuffs!'
+      - '<dark_red>MANY</dark_red> foodstuffs!'
   dirt:
     material: DIRT
-    name: '&5Creates OBSIDIAN!'
+    name: '<dark_purple>Creates OBSIDIAN!'
     lore:
       - 'HIT ME!!'
   obsidian:
     material: OBSIDIAN
   stone:
     material: STONE
-    name: 'Generated stone XD'
+    name: 'Generated stone'
     lore:
       - 'Yay, I was generated!'
-      - 'Either do I, hm...'
 
 items:
   bread:

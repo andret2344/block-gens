@@ -1,0 +1,86 @@
+name: Release
+
+# Pushing a tag like v1.2.0 releases the version from gradle.properties. Before tagging, move the notes from
+# "Unreleased" to a "1.2.0" section in CHANGELOG.md (./gradlew patchChangelog does it).
+# A tag with a suffix, like v1.2.0-beta.1, goes out as a GitHub pre-release, a Modrinth beta and on the Hangar
+# "Snapshot" channel.
+#
+# Repository variables (Settings > Secrets and variables > Actions > Variables):
+#   MODRINTH_PROJECT_ID - the Modrinth project ID, the Modrinth upload is skipped without it
+#   HANGAR_PROJECT      - the Hangar project name, the Hangar upload is skipped without it
+# Repository secrets:
+#   MODRINTH_TOKEN      - a Modrinth personal access token with the "Create versions" scope
+#   HANGAR_API_TOKEN    - a Hangar API key with the "create_version" permission
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PRERELEASE: ${{ contains(github.ref_name, '-') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Check that the tag matches the project version
+        run: |
+          version=$(grep '^version=' gradle.properties | cut -d= -f2)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in gradle.properties"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          {
+            echo "MINECRAFT_VERSIONS<<EOF"
+            grep '^minecraftVersions=' gradle.properties | cut -d= -f2 | tr ',' '\n'
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Build and test
+        run: ./gradlew build
+
+      - name: Extract the release notes
+        run: ./gradlew getChangelog --project-version="$VERSION" --no-header --no-links --output-file=build/release-notes.md
+
+      - name: Release on GitHub
+        uses: softprops/action-gh-release@v3
+        with:
+          name: BlockGens ${{ env.VERSION }}
+          body_path: build/release-notes.md
+          prerelease: ${{ env.PRERELEASE }}
+          files: build/libs/BlockGens-${{ env.VERSION }}.jar
+
+      - name: Release on Modrinth
+        if: vars.MODRINTH_PROJECT_ID != ''
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          name: BlockGens ${{ env.VERSION }}
+          version: ${{ env.VERSION }}
+          version-type: ${{ env.PRERELEASE == 'true' && 'beta' || 'release' }}
+          changelog-file: build/release-notes.md
+          files: build/libs/BlockGens-${{ env.VERSION }}.jar
+          loaders: |
+            paper
+            purpur
+          game-versions: ${{ env.MINECRAFT_VERSIONS }}
+
+      - name: Release on Hangar
+        if: vars.HANGAR_PROJECT != ''
+        env:
+          HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
+        run: >
+          ./gradlew publishPluginPublicationToHangar
+          -PhangarProject="${{ vars.HANGAR_PROJECT }}"
+          -PhangarChannel="${{ env.PRERELEASE == 'true' && 'Snapshot' || 'Release' }}"

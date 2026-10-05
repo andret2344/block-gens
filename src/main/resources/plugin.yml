@@ -1,20 +1,24 @@
-name: atsBlockGenerator
-main: eu.andret.ats.blockgenerator.BlockGeneratorPlugin
-version: 2.4.4
+name: BlockGens
+main: eu.andret.blockgens.BlockGensPlugin
+version: ${version}
 author: Andret
-api-version: 1.17
-description: A plugin that allows to craft blocks, that are generating other blocks.
-website: https://www.spigotmc.org/resources/ats-andret-tools-system-block-generator-craft-infinite-block-generator.96216/
-libraries:
-  - org.jetbrains:annotations:26.0.2
-
-commands:
-  blockgenerator:
-    description: Main command for the block generator plugin.
-    aliases: [ bg, generator ]
+api-version: '26.2'
+description: Craftable generator blocks that keep generating a configured block above themselves.
+website: https://github.com/andret2344/block-gens
 
 permissions:
-  ats.blockgenerator.*:
-    description: Grants access to all block generator commands.
+  blockgens.*:
+    description: Grants access to all BlockGens commands.
     children:
-      ats.blockgenerator.get: true
+      blockgens.get: true
+      blockgens.give: true
+      blockgens.reload: true
+  blockgens.get:
+    description: Allows to get generator blocks, generated blocks and drop items with the command.
+    default: op
+  blockgens.give:
+    description: Allows to give generator blocks to other players with the command.
+    default: op
+  blockgens.reload:
+    description: Allows to reload the config.
+    default: op

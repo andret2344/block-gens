@@ -1,57 +1,67 @@
-/*
- * Copyright Andret Tools System (c) 2025. Copying and modifying allowed only keeping git link reference.
- */
-
 plugins {
 	java
 	jacoco
-	`maven-publish`
-	id("org.barfuin.gradle.jacocolog") version "3.1.0"
-	id("com.gradleup.shadow") version "8.3.6"
+	alias(libs.plugins.jacocolog)
+	alias(libs.plugins.changelog)
+	alias(libs.plugins.shadow)
+	alias(libs.plugins.hangar)
 }
 
-val mockitoAgent = configurations.create("mockitoAgent")
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
+	}
+}
+
+jacoco {
+	toolVersion = libs.versions.jacoco.get()
+}
+
+val artifact = providers.gradleProperty("artifact").get()
+
+configurations {
+	// Tests run against the same server API that the plugin compiles against
+	testImplementation {
+		extendsFrom(configurations.compileOnly.get())
+	}
+}
 
 dependencies {
-	compileOnly(libs.spigot.api)
+	compileOnly(libs.paper.api)
 	compileOnly(libs.jetbrains.annotations)
 	implementation(libs.bstats.bukkit)
-	implementation(libs.ats.arguments)
+	implementation(libs.lamp.common)
+	implementation(libs.lamp.bukkit)
 
-	mockitoAgent(libs.mockito.core) { isTransitive = false }
-	testCompileOnly(libs.jetbrains.annotations)
 	testImplementation(libs.assertj.core)
-	testImplementation(libs.mockito.core)
-	testImplementation(libs.mockito.testng)
-	testImplementation(libs.spigot.api)
+	testImplementation(libs.mockbukkit)
 	testImplementation(libs.testng)
 }
 
 tasks {
-	compileJava {
-		sourceCompatibility = JavaVersion.VERSION_17.toString()
-		targetCompatibility = JavaVersion.VERSION_17.toString()
-		options.compilerArgs.addAll(listOf("-parameters", "-g", "-Xlint:deprecation", "-Xlint:unchecked"))
+	withType<JavaCompile> {
+		// Lamp reads the parameter names to build the command usage
+		options.compilerArgs.addAll(listOf("-parameters", "-Xlint:deprecation", "-Xlint:unchecked"))
+	}
+
+	processResources {
+		val version = project.version.toString()
+		inputs.property("version", version)
+		filesMatching("plugin.yml") {
+			expand("version" to version)
+		}
 	}
 
 	test {
 		useTestNG()
-		finalizedBy(jacocoTestCoverageVerification, jacocoAggregatedReport)
-		jvmArgs("-javaagent:${mockitoAgent.asPath}")
-	}
-
-	jacocoTestReport {
-		classDirectories.setFrom(classDirectories.files.map {
-			fileTree(it).matching {
-				exclude("**/*Plugin.*")
-			}
-		})
+		// bStats refuses to start unless relocated, which only happens in the shadow jar
+		systemProperty("bstats.relocatecheck", "false")
+		finalizedBy(jacocoTestCoverageVerification, jacocoLogTestCoverage)
 	}
 
 	jacocoTestCoverageVerification {
 		violationRules {
 			rule {
-				classDirectories.setFrom(jacocoTestReport.get().classDirectories)
 				limit {
 					minimum = "0.8".toBigDecimal()
 				}
@@ -59,37 +69,47 @@ tasks {
 		}
 	}
 
+	// The shadow jar is the only jar - the plain one would miss the shaded libraries
+	jar {
+		enabled = false
+	}
+
 	build {
 		dependsOn(shadowJar)
 	}
 
-	shadowJar {
-		archiveFileName.set("${project.name}-${project.version}.jar")
-		relocate("org.bstats", "${project.group}.blockgenerator.bstats")
-		relocate("eu.andret.arguments", "${project.group}.blockgenerator.arguments")
+	withType<Jar> {
+		// The suffix stops the LICENSE and NOTICE files of the shaded libraries from replacing ours
+		metaInf {
+			from("LICENSE", "NOTICE")
+			rename { "$it-$artifact" }
+		}
 	}
 
-	publishing {
-		publications {
-			create<MavenPublication>("maven") {
-				artifact(jar)
-				groupId = project.properties["group"].toString()
-				version = project.properties["version"].toString()
-				artifactId = project.properties["artifact"].toString()
-			}
-		}
-		repositories {
-			maven {
-				name = "GitLab"
+	shadowJar {
+		archiveFileName.set("${project.name}-${project.version}.jar")
+		relocate("org.bstats", "${project.group}.blockgens.bstats")
+		relocate("revxrsal.commands", "${project.group}.blockgens.lamp")
+	}
+}
 
-				url = uri("https://gitlab.com/api/v4/projects/6382356/packages/maven")
-				credentials(HttpHeaderCredentials::class) {
-					name = "Job-Token"
-					value = System.getenv("CI_JOB_TOKEN")
-				}
-				authentication {
-					create<HttpHeaderAuthentication>("header")
-				}
+changelog {
+	groups.empty()
+}
+
+// Run by the release workflow, see .github/workflows/release.yml
+hangarPublish {
+	publications.register("plugin") {
+		version = project.version.toString()
+		id = providers.gradleProperty("hangarProject").orElse("BlockGens")
+		channel = providers.gradleProperty("hangarChannel").orElse("Release")
+		// Written by `getChangelog --output-file` in the release workflow
+		changelog = providers.fileContents(layout.buildDirectory.file("release-notes.md")).asText.orElse("")
+		apiKey = providers.environmentVariable("HANGAR_API_TOKEN")
+		platforms {
+			paper {
+				jar = tasks.shadowJar.flatMap { it.archiveFile }
+				platformVersions = providers.gradleProperty("minecraftVersions").get().split(",").map { it.trim() }
 			}
 		}
 	}

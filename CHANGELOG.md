@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.0 - 2026-10-05
+
 BlockGens is the successor of atsBlockGenerator 2.4.3. The changes below are relative to it.
 
 ### Added

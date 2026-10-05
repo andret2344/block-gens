@@ -109,7 +109,9 @@ hangarPublish {
 		apiKey = providers.environmentVariable("HANGAR_API_TOKEN")
 		platforms {
 			paper {
-				jar = tasks.shadowJar.flatMap { it.archiveFile }
+				// The publish workflow passes the jar of the GitHub release, so every platform gets the same file
+				jar = providers.gradleProperty("hangarJar").map { layout.projectDirectory.file(it) }
+					.orElse(tasks.shadowJar.flatMap { it.archiveFile })
 				platformVersions = providers.gradleProperty("minecraftVersions").get().split(",").map { it.trim() }
 			}
 		}

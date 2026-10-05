@@ -2,15 +2,9 @@ name: Release
 
 # Run from the Actions tab ("Run workflow" on main) with the version to release, e.g. 1.2.0. The workflow sets the
 # version in gradle.properties, builds and tests, moves the notes from "Unreleased" in CHANGELOG.md to a section for
-# the version, commits both as "Released 1.2.0.", and releases that commit - GitHub creates the v1.2.0 tag with the
-# release. A version with a suffix, like 1.2.0-beta.1, goes out as a GitHub pre-release, a Modrinth beta and on the
-# Hangar "Snapshot" channel.
-#
-# Repository secrets (Settings > Secrets and variables > Actions), each upload is skipped without its secret:
-#   MODRINTH_TOKEN   - a Modrinth personal access token with the "Create versions" scope, uploads to
-#                      https://modrinth.com/plugin/blockgens (project ID WZxrLw1e, set below)
-#   HANGAR_API_TOKEN - a Hangar API key with the "create_version" permission, uploads to
-#                      https://hangar.papermc.io/andret2344/BlockGens (set in build.gradle.kts)
+# the version, commits both as "Released 1.2.0.", and creates a draft GitHub release of that commit with the jar.
+# Publishing the draft creates the v1.2.0 tag and starts publish.yml, which uploads the jar to Modrinth and Hangar.
+# A version with a suffix, like 1.2.0-beta.1, becomes a pre-release.
 
 on:
   workflow_dispatch:
@@ -33,6 +27,7 @@ jobs:
       # Used in scripts only as "$VERSION", never pasted into them, so the input cannot inject commands
       VERSION: ${{ inputs.version }}
       PRERELEASE: ${{ contains(inputs.version, '-') }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Check the branch and the version
         run: |
@@ -52,21 +47,17 @@ jobs:
           java-version: 25
       - uses: gradle/actions/setup-gradle@v6
 
+      # A draft release has no tag yet, so both are checked
       - name: Check that the version was not released yet
         run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
-            echo "::error::v$VERSION is already released"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null \
+              || gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "::error::v$VERSION is already released or drafted"
             exit 1
           fi
 
       - name: Set the version
-        run: |
-          sed -i "s/^version=.*/version=$VERSION/" gradle.properties
-          {
-            echo "MINECRAFT_VERSIONS<<EOF"
-            grep '^minecraftVersions=' gradle.properties | cut -d= -f2 | tr ',' '\n'
-            echo "EOF"
-          } >> "$GITHUB_ENV"
+        run: sed -i "s/^version=.*/version=$VERSION/" gradle.properties
 
       # Before anything is committed, so a failing build leaves the repository untouched
       - name: Build and test
@@ -90,44 +81,13 @@ jobs:
           git push origin HEAD:main
           echo "RELEASE_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
-      # Creates the v<version> tag on the release commit
-      - name: Release on GitHub
+      - name: Draft the GitHub release
         uses: softprops/action-gh-release@v3
         with:
+          draft: true
           tag_name: v${{ env.VERSION }}
           target_commitish: ${{ env.RELEASE_COMMIT }}
           name: BlockGens ${{ env.VERSION }}
           body_path: build/release-notes.md
           prerelease: ${{ env.PRERELEASE }}
           files: build/libs/BlockGens-${{ env.VERSION }}.jar
-
-      # Secrets cannot be used in `if`, and putting the tokens into the job's env would show them to every action
-      - name: Check for the tokens
-        id: tokens
-        run: |
-          echo "modrinth=${{ secrets.MODRINTH_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-          echo "hangar=${{ secrets.HANGAR_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-
-      - name: Release on Modrinth
-        if: steps.tokens.outputs.modrinth == 'true'
-        uses: Kir-Antipov/mc-publish@v3.3
-        with:
-          modrinth-id: WZxrLw1e
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          name: BlockGens ${{ env.VERSION }}
-          version: ${{ env.VERSION }}
-          version-type: ${{ env.PRERELEASE == 'true' && 'beta' || 'release' }}
-          changelog-file: build/release-notes.md
-          files: build/libs/BlockGens-${{ env.VERSION }}.jar
-          loaders: |
-            paper
-            purpur
-          game-versions: ${{ env.MINECRAFT_VERSIONS }}
-
-      - name: Release on Hangar
-        if: steps.tokens.outputs.hangar == 'true'
-        env:
-          HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
-        run: >
-          ./gradlew publishPluginPublicationToHangar
-          -PhangarChannel="${{ env.PRERELEASE == 'true' && 'Snapshot' || 'Release' }}"

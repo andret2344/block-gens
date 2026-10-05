@@ -1,9 +1,10 @@
 name: Release
 
-# Pushing a tag like v1.2.0 releases the version from gradle.properties. Before tagging, move the notes from
-# "Unreleased" to a "1.2.0" section in CHANGELOG.md (./gradlew patchChangelog does it).
-# A tag with a suffix, like v1.2.0-beta.1, goes out as a GitHub pre-release, a Modrinth beta and on the Hangar
-# "Snapshot" channel.
+# Run from the Actions tab ("Run workflow" on main) with the version to release, e.g. 1.2.0. The workflow sets the
+# version in gradle.properties, builds and tests, moves the notes from "Unreleased" in CHANGELOG.md to a section for
+# the version, commits both as "Released 1.2.0.", and releases that commit - GitHub creates the v1.2.0 tag with the
+# release. A version with a suffix, like 1.2.0-beta.1, goes out as a GitHub pre-release, a Modrinth beta and on the
+# Hangar "Snapshot" channel.
 #
 # Repository secrets (Settings > Secrets and variables > Actions), each upload is skipped without its secret:
 #   MODRINTH_TOKEN   - a Modrinth personal access token with the "Create versions" scope, uploads to
@@ -12,18 +13,38 @@ name: Release
 #                      https://hangar.papermc.io/andret2344/BlockGens (set in build.gradle.kts)
 
 on:
-  push:
-    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, e.g. 1.2.0 or 1.2.0-beta.1
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+# Two releases at once would push conflicting commits
+concurrency: release
 
 jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      PRERELEASE: ${{ contains(github.ref_name, '-') }}
+      # Used in scripts only as "$VERSION", never pasted into them, so the input cannot inject commands
+      VERSION: ${{ inputs.version }}
+      PRERELEASE: ${{ contains(inputs.version, '-') }}
     steps:
+      - name: Check the branch and the version
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Releases are made from main, not from $GITHUB_REF"
+            exit 1
+          fi
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$VERSION' is not a version like 1.2.0 or 1.2.0-beta.1"
+            exit 1
+          fi
+
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
         with:
@@ -31,29 +52,50 @@ jobs:
           java-version: 25
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Check that the tag matches the project version
+      - name: Check that the version was not released yet
         run: |
-          version=$(grep '^version=' gradle.properties | cut -d= -f2)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in gradle.properties"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::v$VERSION is already released"
             exit 1
           fi
-          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Set the version
+        run: |
+          sed -i "s/^version=.*/version=$VERSION/" gradle.properties
           {
             echo "MINECRAFT_VERSIONS<<EOF"
             grep '^minecraftVersions=' gradle.properties | cut -d= -f2 | tr ',' '\n'
             echo "EOF"
           } >> "$GITHUB_ENV"
 
+      # Before anything is committed, so a failing build leaves the repository untouched
       - name: Build and test
         run: ./gradlew build
 
-      - name: Extract the release notes
-        run: ./gradlew getChangelog --project-version="$VERSION" --no-header --no-links --output-file=build/release-notes.md
+      - name: Move the release notes to the version
+        run: |
+          ./gradlew patchChangelog
+          ./gradlew getChangelog --project-version="$VERSION" --no-header --no-links --output-file=build/release-notes.md
+          if ! grep -q '[^[:space:]]' build/release-notes.md; then
+            echo "::error::There is nothing under Unreleased in CHANGELOG.md"
+            exit 1
+          fi
 
+      - name: Commit the release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gradle.properties CHANGELOG.md
+          git commit -m "Released $VERSION."
+          git push origin HEAD:main
+          echo "RELEASE_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      # Creates the v<version> tag on the release commit
       - name: Release on GitHub
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ env.RELEASE_COMMIT }}
           name: BlockGens ${{ env.VERSION }}
           body_path: build/release-notes.md
           prerelease: ${{ env.PRERELEASE }}

@@ -57,11 +57,14 @@ dropping items from a weighted drop table.
 
 ### Selling generators in a shop
 
-`/bg give` works from the console, so any shop plugin that runs commands can sell generators:
+`/blockgens give` works from the console, so any shop plugin that runs commands can sell generators:
 
 ```
-bg give {player} sponge 5
+blockgens give {player} sponge 5
 ```
+
+Use the full name, not the `bg` alias: the alias goes to only one plugin when another one has it too, and then the
+player pays without getting the generator.
 
 The amount is optional, 1 by default and at most 2304 (a full inventory). Items that do not fit into the inventory are
 dropped at the player's feet.

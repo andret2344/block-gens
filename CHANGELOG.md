@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.2 - 2026-10-06
+
 ### Changed
 
 - Usage statistics are sent to the new [BlockGens page on bStats](https://bstats.org/plugin/bukkit/BlockGens/34535)

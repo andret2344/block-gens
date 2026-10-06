@@ -28,20 +28,20 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BlockGensListenerTest extends PluginTest {
+class BlockGensListenerTest extends PluginTest {
 	private PlayerMock player;
 
-	@BeforeMethod
-	public void setUpPlayer() {
+	@BeforeEach
+	void setUpPlayer() {
 		player = server.addPlayer();
 		player.setGameMode(GameMode.SURVIVAL);
 	}
@@ -54,7 +54,7 @@ public class BlockGensListenerTest extends PluginTest {
 		block.setType(Material.SPONGE);
 
 		// when
-		callPlace(block, sponge.generatorItem().itemStack().clone());
+		callPlace(block, sponge.generatorItem().itemStack().asOne());
 
 		// then
 		assertThat(block.getRelative(0, 1, 0).getType()).isEqualTo(Material.STONE);
@@ -243,8 +243,7 @@ public class BlockGensListenerTest extends PluginTest {
 	void pistonPushingGenerator() {
 		// given
 		final Block generator = placeGenerator(pattern("sponge"), 0, 5, 0);
-		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(1, 5, 0),
-				List.of(generator), BlockFace.WEST);
+		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(1, 5, 0), List.of(generator), BlockFace.WEST);
 
 		// when
 		callEvent(event);
@@ -257,8 +256,7 @@ public class BlockGensListenerTest extends PluginTest {
 	void pistonPushingGeneratedBlock() {
 		// given
 		final Block generated = placeGenerator(pattern("sponge"), 0, 5, 0).getRelative(0, 1, 0);
-		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(1, 6, 0),
-				List.of(generated), BlockFace.WEST);
+		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(1, 6, 0), List.of(generated), BlockFace.WEST);
 
 		// when
 		callEvent(event);
@@ -271,8 +269,7 @@ public class BlockGensListenerTest extends PluginTest {
 	void pistonPullingGenerator() {
 		// given
 		final Block generator = placeGenerator(pattern("sponge"), 0, 5, 0);
-		final BlockPistonRetractEvent event = new BlockPistonRetractEvent(world.getBlockAt(2, 5, 0),
-				List.of(generator), BlockFace.EAST);
+		final BlockPistonRetractEvent event = new BlockPistonRetractEvent(world.getBlockAt(2, 5, 0), List.of(generator), BlockFace.EAST);
 
 		// when
 		callEvent(event);
@@ -286,10 +283,8 @@ public class BlockGensListenerTest extends PluginTest {
 		// given
 		final Block block = world.getBlockAt(0, 5, 0);
 		block.setType(Material.SPONGE);
-		final BlockPistonExtendEvent extend = new BlockPistonExtendEvent(world.getBlockAt(1, 5, 0),
-				List.of(block), BlockFace.WEST);
-		final BlockPistonRetractEvent retract = new BlockPistonRetractEvent(world.getBlockAt(2, 5, 0),
-				List.of(block), BlockFace.EAST);
+		final BlockPistonExtendEvent extend = new BlockPistonExtendEvent(world.getBlockAt(1, 5, 0), List.of(block), BlockFace.WEST);
+		final BlockPistonRetractEvent retract = new BlockPistonRetractEvent(world.getBlockAt(2, 5, 0), List.of(block), BlockFace.EAST);
 
 		// when
 		callEvent(extend);
@@ -304,8 +299,7 @@ public class BlockGensListenerTest extends PluginTest {
 	void entityChangingGenerator() {
 		// given
 		final Block generator = placeGenerator(pattern("dirt"), 0, 5, 0);
-		final EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, generator,
-				Material.AIR.createBlockData());
+		final EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, generator, Material.AIR.createBlockData());
 
 		// when
 		callEvent(event);
@@ -318,8 +312,7 @@ public class BlockGensListenerTest extends PluginTest {
 	void entityChangingGeneratedBlock() {
 		// given
 		final Block generated = placeGenerator(pattern("sponge"), 0, 5, 0).getRelative(0, 1, 0);
-		final EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, generated,
-				Material.INFESTED_STONE.createBlockData());
+		final EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, generated, Material.INFESTED_STONE.createBlockData());
 
 		// when
 		callEvent(event);
@@ -569,8 +562,14 @@ public class BlockGensListenerTest extends PluginTest {
 		final Block generated = placeGenerator(pattern("dirt"), 0, 5, 0).getRelative(0, 1, 0);
 		breakBlock(generated);
 		generated.setType(Material.CHEST);
-		final BlockPlaceEvent event = new BlockPlaceEvent(generated, generated.getState(),
-				generated.getRelative(0, 0, 1), new ItemStack(Material.CHEST), player, true, EquipmentSlot.HAND);
+		final BlockPlaceEvent event = new BlockPlaceEvent(
+				generated,
+				generated.getState(),
+				generated.getRelative(0, 0, 1),
+				new ItemStack(Material.CHEST),
+				player,
+				true,
+				EquipmentSlot.HAND);
 
 		// when
 		callEvent(event);
@@ -586,8 +585,13 @@ public class BlockGensListenerTest extends PluginTest {
 		final Block generated = placeGenerator(sponge, 0, 5, 0).getRelative(0, 1, 0);
 		breakBlock(generated);
 		generated.setType(Material.SPONGE);
-		final BlockPlaceEvent event = new BlockPlaceEvent(generated, generated.getState(),
-				generated.getRelative(0, 0, 1), sponge.generatorItem().itemStack().clone(), player, true,
+		final BlockPlaceEvent event = new BlockPlaceEvent(
+				generated,
+				generated.getState(),
+				generated.getRelative(0, 0, 1),
+				sponge.generatorItem().itemStack().asOne(),
+				player,
+				true,
 				EquipmentSlot.HAND);
 
 		// when
@@ -603,8 +607,12 @@ public class BlockGensListenerTest extends PluginTest {
 		// given
 		final Block generated = placeGenerator(pattern("dirt"), 0, 5, 0).getRelative(0, 1, 0);
 		breakBlock(generated);
-		final PlayerBucketEmptyEvent event = new PlayerBucketEmptyEvent(player, generated,
-				generated.getRelative(0, 0, 1), BlockFace.NORTH, Material.LAVA_BUCKET, new ItemStack(Material.LAVA_BUCKET),
+		final PlayerBucketEmptyEvent event = new PlayerBucketEmptyEvent(player,
+				generated,
+				generated.getRelative(0, 0, 1),
+				BlockFace.NORTH,
+				Material.LAVA_BUCKET,
+				new ItemStack(Material.LAVA_BUCKET),
 				EquipmentSlot.HAND);
 
 		// when
@@ -618,8 +626,14 @@ public class BlockGensListenerTest extends PluginTest {
 	void emptyBucketElsewhere() {
 		// given
 		final Block block = world.getBlockAt(0, 5, 0);
-		final PlayerBucketEmptyEvent event = new PlayerBucketEmptyEvent(player, block, block.getRelative(0, -1, 0),
-				BlockFace.UP, Material.WATER_BUCKET, new ItemStack(Material.WATER_BUCKET), EquipmentSlot.HAND);
+		final PlayerBucketEmptyEvent event = new PlayerBucketEmptyEvent(
+				player,
+				block,
+				block.getRelative(0, -1, 0),
+				BlockFace.UP,
+				Material.WATER_BUCKET,
+				new ItemStack(Material.WATER_BUCKET),
+				EquipmentSlot.HAND);
 
 		// when
 		callEvent(event);
@@ -635,8 +649,7 @@ public class BlockGensListenerTest extends PluginTest {
 		breakBlock(generated);
 		final Block pushed = world.getBlockAt(1, 6, 0);
 		pushed.setType(Material.COBBLESTONE);
-		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(2, 6, 0), List.of(pushed),
-				BlockFace.WEST);
+		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(2, 6, 0), List.of(pushed), BlockFace.WEST);
 
 		// when
 		callEvent(event);
@@ -650,8 +663,7 @@ public class BlockGensListenerTest extends PluginTest {
 		// given
 		final Block generated = placeGenerator(pattern("dirt"), 0, 5, 0).getRelative(0, 1, 0);
 		breakBlock(generated);
-		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(1, 6, 0), List.of(),
-				BlockFace.WEST);
+		final BlockPistonExtendEvent event = new BlockPistonExtendEvent(world.getBlockAt(1, 6, 0), List.of(), BlockFace.WEST);
 
 		// when
 		callEvent(event);
@@ -668,8 +680,7 @@ public class BlockGensListenerTest extends PluginTest {
 		final Block pulled = world.getBlockAt(1, 6, 0);
 		pulled.setType(Material.COBBLESTONE);
 		// A sticky piston at x = -1 facing east pulls the block at x = 1 to x = 0
-		final BlockPistonRetractEvent event = new BlockPistonRetractEvent(world.getBlockAt(-1, 6, 0), List.of(pulled),
-				BlockFace.EAST);
+		final BlockPistonRetractEvent event = new BlockPistonRetractEvent(world.getBlockAt(-1, 6, 0), List.of(pulled), BlockFace.EAST);
 
 		// when
 		callEvent(event);
@@ -683,8 +694,7 @@ public class BlockGensListenerTest extends PluginTest {
 		// given
 		final Block generated = placeGenerator(pattern("dirt"), 0, 5, 0).getRelative(0, 1, 0);
 		breakBlock(generated);
-		final EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, generated,
-				Material.SAND.createBlockData());
+		final EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, generated, Material.SAND.createBlockData());
 
 		// when
 		callEvent(event);
@@ -702,7 +712,7 @@ public class BlockGensListenerTest extends PluginTest {
 		above.setType(Material.CHEST);
 
 		// when
-		callPlace(block, pattern("sponge").generatorItem().itemStack().clone());
+		callPlace(block, pattern("sponge").generatorItem().itemStack().asOne());
 
 		// then
 		assertThat(above.getType()).isEqualTo(Material.CHEST);
@@ -718,7 +728,7 @@ public class BlockGensListenerTest extends PluginTest {
 		above.setType(Material.CAVE_AIR);
 
 		// when
-		callPlace(block, pattern("sponge").generatorItem().itemStack().clone());
+		callPlace(block, pattern("sponge").generatorItem().itemStack().asOne());
 
 		// then
 		assertThat(above.getType()).isEqualTo(Material.STONE);
@@ -776,8 +786,7 @@ public class BlockGensListenerTest extends PluginTest {
 		above.setType(Material.TORCH);
 
 		// when
-		callEvent(new BlockDestroyEvent(above, Material.AIR.createBlockData(), Material.TORCH.createBlockData(), 0,
-				true));
+		callEvent(new BlockDestroyEvent(above, Material.AIR.createBlockData(), Material.TORCH.createBlockData(), 0, true));
 		above.setType(Material.AIR);
 		server.getScheduler().performTicks(1);
 
@@ -810,13 +819,13 @@ public class BlockGensListenerTest extends PluginTest {
 		// Cancels at the highest priority a cancelling listener may use, after the plugin's own listeners
 		server.getPluginManager().registerEvents(new Listener() {
 			@EventHandler(priority = EventPriority.HIGHEST)
-			public void protect(@NotNull final BlockPlaceEvent event) {
+			void protect(@NotNull final BlockPlaceEvent event) {
 				event.setCancelled(true);
 			}
 		}, plugin);
 
 		// when
-		callPlace(block, pattern("sponge").generatorItem().itemStack().clone());
+		callPlace(block, pattern("sponge").generatorItem().itemStack().asOne());
 
 		// then
 		assertThat(above.getType()).isEqualTo(Material.CHEST);
@@ -858,7 +867,7 @@ public class BlockGensListenerTest extends PluginTest {
 	private void protectFromBreaking() {
 		server.getPluginManager().registerEvents(new Listener() {
 			@EventHandler
-			public void protect(@NotNull final BlockBreakEvent event) {
+			void protect(@NotNull final BlockBreakEvent event) {
 				event.setCancelled(true);
 			}
 		}, plugin);
@@ -873,7 +882,7 @@ public class BlockGensListenerTest extends PluginTest {
 		block.setType(Material.SPONGE);
 		final Block above = block.getRelative(0, 1, 0);
 		above.setType(Material.CHEST);
-		callPlace(block, pattern("sponge").generatorItem().itemStack().clone());
+		callPlace(block, pattern("sponge").generatorItem().itemStack().asOne());
 		return above;
 	}
 
@@ -881,21 +890,26 @@ public class BlockGensListenerTest extends PluginTest {
 	private GeneratorPattern addPattern(@NotNull final ExplosionMode generator, @NotNull final ExplosionMode generated) {
 		final RandomCollection<NamedItem> drops = new RandomCollection<>();
 		drops.add(new NamedItem("diamond", new ItemStack(Material.DIAMOND)), 1);
-		final GeneratorPattern pattern = new GeneratorPattern("custom", 1,
+		final GeneratorPattern pattern = new GeneratorPattern(
+				"custom",
+				1,
 				new NamedItem("iron", new ItemStack(Material.IRON_BLOCK)),
 				new NamedItem("gold", new ItemStack(Material.GOLD_BLOCK)),
-				drops, generator, generated, null);
+				drops,
+				generator,
+				generated,
+				null);
 		plugin.getPatternList().add(pattern);
 		return pattern;
 	}
 
 	@NotNull
-	private EntityExplodeEvent entityExplosion(@NotNull final List<Block> blocks, final float yield) {
-		return new EntityExplodeEvent(player, player.getLocation(), blocks, yield, ExplosionResult.DESTROY);
+	private EntityExplodeEvent entityExplosion(@NotNull final List<Block> blocks, final float dropChance) {
+		return new EntityExplodeEvent(player, player.getLocation(), blocks, dropChance, ExplosionResult.DESTROY);
 	}
 
 	/**
-	 * Breaks the block the way the server does: the event first, then air unless a listener cancelled it.
+	 * Breaks the block the way the server does: the event first, then air unless a listener canceled it.
 	 */
 	@NotNull
 	private BlockBreakEvent breakBlock(@NotNull final Block block) {
@@ -908,8 +922,7 @@ public class BlockGensListenerTest extends PluginTest {
 	}
 
 	private void callPlace(@NotNull final Block block, @NotNull final ItemStack itemInHand) {
-		callEvent(new BlockPlaceEvent(block, block.getState(), block.getRelative(0, -1, 0), itemInHand, player, true,
-				EquipmentSlot.HAND));
+		callEvent(new BlockPlaceEvent(block, block.getState(), block.getRelative(0, -1, 0), itemInHand, player, true, EquipmentSlot.HAND));
 	}
 
 	private void callEvent(@NotNull final Event event) {

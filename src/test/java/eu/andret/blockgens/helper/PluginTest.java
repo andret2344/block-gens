@@ -6,11 +6,11 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.world.WorldMock;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 
 import java.util.List;
 
@@ -22,15 +22,15 @@ public abstract class PluginTest {
 	protected BlockGensPlugin plugin;
 	protected WorldMock world;
 
-	@BeforeMethod
-	public void setUpServer() {
+	@BeforeEach
+	void setUpServer() {
 		server = MockBukkit.mock();
 		plugin = MockBukkit.load(BlockGensPlugin.class);
 		world = server.addSimpleWorld("world");
 	}
 
-	@AfterMethod(alwaysRun = true)
-	public void tearDownServer() {
+	@AfterEach
+	void tearDownServer() {
 		MockBukkit.unmock();
 	}
 

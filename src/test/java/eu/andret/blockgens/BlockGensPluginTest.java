@@ -8,7 +8,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.jetbrains.annotations.NotNull;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class BlockGensPluginTest extends PluginTest {
+class BlockGensPluginTest extends PluginTest {
 	@Test
 	void reloadReplacesPatternsAndRecipes() throws IOException, InvalidConfigurationException {
 		// given

@@ -35,7 +35,9 @@ dependencies {
 
 	testImplementation(libs.assertj.core)
 	testImplementation(libs.mockbukkit)
-	testImplementation(libs.testng)
+	testImplementation(platform(libs.junit.bom))
+	testImplementation(libs.junit.jupiter)
+	testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks {
@@ -53,10 +55,22 @@ tasks {
 	}
 
 	test {
-		useTestNG()
+		useJUnitPlatform()
 		// bStats refuses to start unless relocated, which only happens in the shadow jar
 		systemProperty("bstats.relocatecheck", "false")
 		finalizedBy(jacocoTestCoverageVerification, jacocoLogTestCoverage)
+		// MockBukkit throws UnimplementedOperationException, a TestAbortedException, from what it does not implement,
+		// so JUnit reports such a test as skipped. Fail instead of passing without running it.
+		addTestListener(object : TestListener {
+			override fun beforeSuite(suite: TestDescriptor) {}
+			override fun beforeTest(testDescriptor: TestDescriptor) {}
+			override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
+			override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+				if (suite.parent == null && result.skippedTestCount > 0) {
+					throw GradleException("${result.skippedTestCount} test(s) skipped, most likely by MockBukkit's UnimplementedOperationException")
+				}
+			}
+		})
 	}
 
 	jacocoTestCoverageVerification {

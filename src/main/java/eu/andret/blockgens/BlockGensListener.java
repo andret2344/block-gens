@@ -180,7 +180,7 @@ public class BlockGensListener implements Listener {
 	 * Takes the generators and the generated blocks out of the exploded blocks, so the server does not drop them as
 	 * regular blocks, and applies the explosion mode of their pattern instead.
 	 */
-	private void explode(@NotNull final List<Block> blocks, final float yield) {
+	private void explode(@NotNull final List<Block> blocks, final float dropChance) {
 		final List<Block> generators = blocks.stream().filter(block -> findPattern(block).isPresent()).toList();
 		final List<Block> generated = blocks.stream().filter(block -> findGeneratedPattern(block).isPresent()).toList();
 		blocks.removeAll(generators);
@@ -191,10 +191,11 @@ public class BlockGensListener implements Listener {
 		generated.forEach(block -> findGeneratedPattern(block).ifPresent(pattern -> {
 			switch (pattern.generatedExplosion()) {
 				case PREVENT -> {
+					// do nothing
 				}
 				case DROP -> {
 					clearGenerated(block, pattern);
-					if (isDropped(yield)) {
+					if (isDropped(dropChance)) {
 						Optional.ofNullable(pattern.dropItems().next())
 								.ifPresent(item -> drop(block, item.itemStack()));
 					}
@@ -205,10 +206,11 @@ public class BlockGensListener implements Listener {
 		generators.forEach(block -> findPattern(block).ifPresent(pattern -> {
 			switch (pattern.generatorExplosion()) {
 				case PREVENT -> {
+					// do nothing
 				}
 				case DROP -> {
 					removeGenerator(block);
-					if (isDropped(yield)) {
+					if (isDropped(dropChance)) {
 						drop(block, pattern.generatorItem().itemStack());
 					}
 				}
@@ -282,8 +284,8 @@ public class BlockGensListener implements Listener {
 		block.getWorld().dropItemNaturally(block.getLocation(), itemStack);
 	}
 
-	private boolean isDropped(final float yield) {
-		return ThreadLocalRandom.current().nextFloat() < yield;
+	private boolean isDropped(final float dropChance) {
+		return ThreadLocalRandom.current().nextFloat() < dropChance;
 	}
 
 	private boolean isProtected(@NotNull final Block block) {

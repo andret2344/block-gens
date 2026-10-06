@@ -7,10 +7,10 @@ import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,11 +22,11 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BlockGensCommandTest extends PluginTest {
+class BlockGensCommandTest extends PluginTest {
 	private PlayerMock player;
 
-	@BeforeMethod
-	public void setUpPlayer() {
+	@BeforeEach
+	void setUpPlayer() {
 		player = server.addPlayer();
 		player.setOp(true);
 	}

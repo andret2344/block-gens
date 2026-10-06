@@ -5,14 +5,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class GeneratorStoreTest extends PluginTest {
+class GeneratorStoreTest extends PluginTest {
 	@Test
 	void saveUnderPositionKey() {
 		// given

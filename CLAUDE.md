@@ -13,7 +13,7 @@ BlockGens (successor of atsBlockGenerator) - a Paper plugin. Players craft a "ge
 
 ```sh
 ./gradlew build                      # compile, test, coverage check, shadowJar -> build/libs/BlockGens-<version>.jar
-./gradlew test                       # TestNG tests, then jacoco coverage verification (min 80%)
+./gradlew test                       # JUnit tests, then jacoco coverage verification (min 80%)
 ./gradlew test --tests eu.andret.blockgens.config.ConfigLoaderTest -x jacocoTestCoverageVerification
 ./gradlew test --tests "eu.andret.blockgens.BlockGensListenerTest.placeGenerator" -x jacocoTestCoverageVerification
 ```
@@ -88,7 +88,9 @@ generators; `command` the Lamp argument types and condition; `util` generic help
 
 ## Tests
 
-- TestNG + AssertJ + MockBukkit, `// given` / `// when` / `// then` structure. No Mockito.
+- JUnit 6 + AssertJ + MockBukkit, `// given` / `// when` / `// then` structure. No Mockito.
+- Test classes, their methods and test-only helpers are package-private. `public` stays only where Java needs it: the
+  `helper/PluginTest` base class (extended from other packages) and overridden API methods.
 - Tests extend `helper/PluginTest`, which starts `MockBukkit.mock()`, loads the real plugin with the shipped
   `config.yml` and adds a world before every test. `placeGenerator` sets up a generator with its generated block.
 - Events are built by hand and fired with `server.getPluginManager().callEvent`; block breaking goes through the
@@ -96,6 +98,9 @@ generators; `command` the Lamp argument types and condition; `util` generic help
 - The scheduler only runs on `server.getScheduler().performTicks(n)`. MockBukkit worlds start at Y=0.
 - `ConfigLoaderTest` loads other configs with `plugin.getConfig().loadFromString(...)` and a new `ConfigLoader`;
   generator names must differ from the shipped ones, whose recipes are already registered.
+- MockBukkit throws `UnimplementedOperationException`, a `TestAbortedException`, from what it does not implement, and
+  JUnit reports that as **skipped**. The `test` task fails the build when any test is skipped, so a test never passes
+  without running.
 
 ## Icon and banner
 

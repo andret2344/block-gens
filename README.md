@@ -128,7 +128,7 @@ items:
 ./gradlew build
 ```
 
-The plugin jar is `build/libs/BlockGens-<version>.jar`. The build runs the test suite (TestNG and MockBukkit) and
+The plugin jar is `build/libs/BlockGens-<version>.jar`. The build runs the test suite (JUnit and MockBukkit) and
 requires at least 80% test coverage.
 
 ## Metrics

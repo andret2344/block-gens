@@ -144,7 +144,7 @@ requires at least 80% test coverage.
 
 ## Metrics
 
-BlockGens sends anonymous usage statistics to [bStats](https://bstats.org/plugin/bukkit/atsBlockGenerator/10330). They
+BlockGens sends anonymous usage statistics to [bStats](https://bstats.org/plugin/bukkit/BlockGens/34535). They
 can be turned off for all plugins in `plugins/bStats/config.yml`.
 
 ## License

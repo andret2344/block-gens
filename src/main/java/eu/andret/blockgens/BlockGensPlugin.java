@@ -52,7 +52,7 @@ public class BlockGensPlugin extends JavaPlugin {
 		applyPatterns(configLoader.loadGeneratorPatterns(getConfig()));
 		setUpListeners();
 		setUpCommand();
-		new Metrics(this, 10330);
+		new Metrics(this, 34535);
 	}
 
 	@Override

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Usage statistics are sent to the new [BlockGens page on bStats](https://bstats.org/plugin/bukkit/BlockGens/34535)
+  instead of the one of atsBlockGenerator.
+
 ## 1.0.1 - 2026-10-06
 
 ### Changed
@@ -79,7 +84,7 @@ BlockGens is the successor of atsBlockGenerator 2.4.3. The changes below are rel
 - Items given with a command no longer disappear when the inventory is full - they are dropped at the player's feet.
 - An unknown or missing material in the config, also in a crafting mapping, stops the plugin with a message naming the
   material and where it is. The same goes for a drop that is not defined in `items`, and for a drop without a positive
-  `weight` or with a `count` below 1. Before, an item failed with an unreadable error and a crafting ingredient was skipped
-  without a word.
+  `weight` or with a `count` below 1. Before, an item failed with an unreadable error and a crafting ingredient was
+  skipped without a word.
 - Recipes are removed when the plugin is disabled, so enabling it again does not register them twice.
 - Drop items keep the name and lore set in `items`. A drop without `count` drops one item instead of nothing.

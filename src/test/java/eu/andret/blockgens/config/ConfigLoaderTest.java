@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,10 +72,41 @@ class ConfigLoaderTest extends PluginTest {
 
 		// then
 		final ItemMeta meta = result.getFirst().generatorItem().itemStack().getItemMeta();
-		assertThat(meta.itemName()).isEqualTo(Component.text("Generator", NamedTextColor.RED));
+		assertThat(meta.customName())
+				.isEqualTo(Component.text("Generator", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
 		assertThat(meta.lore()).containsExactly(
 				Component.text("first", NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false),
 				Component.text("second", NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, true));
+	}
+
+	@Test
+	void tagGeneratorItemsWithTheirPattern() throws InvalidConfigurationException {
+		// given
+		loadConfig("""
+				generators:
+				  first:
+				    blocks:
+				      generator: sponge
+				      generated: stone
+				  second:
+				    blocks:
+				      generator: sponge
+				      generated: stone
+				blocks:
+				  sponge:
+				    material: SPONGE
+				  stone:
+				    material: STONE
+				""");
+
+		// when
+		final List<GeneratorPattern> result = new ConfigLoader(plugin).loadGeneratorPatterns(config);
+
+		// then
+		assertThat(result).extracting(pattern -> pattern.generatorItem().itemStack().getPersistentDataContainer()
+				.get(plugin.getGeneratorKey(), PersistentDataType.STRING)).containsExactly("first", "second");
+		assertThat(result).extracting(pattern -> pattern.generatedItem().itemStack().getPersistentDataContainer()
+				.has(plugin.getGeneratorKey())).containsOnly(false);
 	}
 
 	@Test
@@ -378,7 +410,8 @@ class ConfigLoaderTest extends PluginTest {
 				.anySatisfy(drop -> {
 					assertThat(drop.getType()).isEqualTo(Material.BREAD);
 					assertThat(drop.getAmount()).isEqualTo(3);
-					assertThat(drop.getItemMeta().itemName()).isEqualTo(Component.text("Special bread"));
+					assertThat(drop.getItemMeta().customName())
+							.isEqualTo(Component.text("Special bread").decoration(TextDecoration.ITALIC, false));
 				})
 				.anySatisfy(drop -> {
 					assertThat(drop.getType()).isEqualTo(Material.APPLE);

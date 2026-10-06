@@ -121,6 +121,14 @@ items:
 - While the generated block re-spawns, its spot is kept free: blocks, liquids, pistons and falling blocks cannot get in.
 - Breaking a generator in survival or adventure mode drops it as an item; in creative it is just removed.
 - Generators placed in a protected region follow the rules of the protection plugin.
+- A generator item stays a generator when it is renamed or when its name or lore change in the config.
+
+### Things to keep in mind
+
+- Placed generators are stored in the world data that Paper adds to each chunk. Opening the world in singleplayer or
+  on a vanilla server removes that data, and the generators turn into regular blocks.
+- The names of the generators in `config.yml` identify generator items and placed generators. Renaming a generator
+  turns its items and placed generators into regular blocks, so pick the names once.
 
 ## Building from source
 

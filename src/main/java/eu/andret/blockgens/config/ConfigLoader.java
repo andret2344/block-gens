@@ -10,6 +10,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,14 +80,25 @@ public class ConfigLoader {
 		verifyBlock(generatorNamedItem);
 		verifyBlock(generatedNamedItem);
 		verifyNoGravity(generatorNamedItem);
+		final NamedItem generatorItem = tagGenerator(generatorNamedItem, configurationSection.getName());
 		return new GeneratorPattern(configurationSection.getName(),
 				configurationSection.getLong("delay", 1L),
-				generatorNamedItem,
+				generatorItem,
 				generatedNamedItem,
 				loadDropList(configurationSection, items),
 				loadExplosionMode(configurationSection, "explosion.generator", ExplosionMode.DROP),
 				loadExplosionMode(configurationSection, "explosion.generated", ExplosionMode.REMOVE),
-				loadRecipe(configurationSection, generatorNamedItem.itemStack()));
+				loadRecipe(configurationSection, generatorItem.itemStack()));
+	}
+
+	// The tag, not the look of the item, makes it a generator, so a renamed item or a changed config keeps it working.
+	// A copy, as one block may be the generator of more than one pattern.
+	@NotNull
+	private NamedItem tagGenerator(@NotNull final NamedItem block, @NotNull final String patternName) {
+		final ItemStack itemStack = block.itemStack().asQuantity(block.itemStack().getAmount());
+		itemStack.editPersistentDataContainer(container ->
+				container.set(plugin.getGeneratorKey(), PersistentDataType.STRING, patternName));
+		return new NamedItem(block.name(), itemStack);
 	}
 
 	private void verifyBlock(@NotNull final NamedItem namedItem) {
@@ -216,11 +228,13 @@ public class ConfigLoader {
 		return Optional.of(itemStack)
 				.map(ItemStack::getItemMeta)
 				.map(itemMeta -> {
-					// The item name, unlike the custom name, is not italic and cannot be changed with an anvil
+					// The custom name, as some items (potions, tipped arrows) ignore the item name.
+					// Not italic, which a custom name is by default.
 					Optional.of(configurationSection)
 							.map(section -> section.getString("name"))
 							.map(MINI_MESSAGE::deserialize)
-							.ifPresent(itemMeta::itemName);
+							.map(name -> name.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
+							.ifPresent(itemMeta::customName);
 					itemMeta.lore(configurationSection.getStringList("lore").stream()
 							.map(MINI_MESSAGE::deserialize)
 							.map(text -> text.colorIfAbsent(NamedTextColor.WHITE)

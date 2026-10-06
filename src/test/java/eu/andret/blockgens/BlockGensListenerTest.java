@@ -6,6 +6,7 @@ import eu.andret.blockgens.config.GeneratorPattern;
 import eu.andret.blockgens.config.NamedItem;
 import eu.andret.blockgens.helper.PluginTest;
 import eu.andret.blockgens.util.RandomCollection;
+import net.kyori.adventure.text.Component;
 import org.bukkit.ExplosionResult;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -27,6 +28,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,74 @@ class BlockGensListenerTest extends PluginTest {
 
 		// when
 		callPlace(block, new ItemStack(Material.SPONGE));
+
+		// then
+		assertThat(block.getRelative(0, 1, 0).getType()).isEqualTo(Material.AIR);
+		assertThat(plugin.getGeneratorStore().find(block)).isEmpty();
+	}
+
+	@Test
+	void placeRenamedGenerator() {
+		// given
+		final GeneratorPattern sponge = pattern("sponge");
+		final Block block = world.getBlockAt(0, 5, 0);
+		block.setType(Material.SPONGE);
+		final ItemStack renamed = sponge.generatorItem().itemStack().asOne();
+		renamed.editMeta(meta -> meta.customName(Component.text("Renamed in an anvil")));
+
+		// when
+		callPlace(block, renamed);
+
+		// then
+		assertThat(block.getRelative(0, 1, 0).getType()).isEqualTo(Material.STONE);
+		assertThat(plugin.getGeneratorStore().find(block)).contains("sponge");
+	}
+
+	@Test
+	void placeLookalikeWithoutTag() {
+		// given
+		final GeneratorPattern sponge = pattern("sponge");
+		final Block block = world.getBlockAt(0, 5, 0);
+		block.setType(Material.SPONGE);
+		final ItemStack lookalike = sponge.generatorItem().itemStack().asOne();
+		lookalike.editPersistentDataContainer(container -> container.remove(plugin.getGeneratorKey()));
+
+		// when
+		callPlace(block, lookalike);
+
+		// then
+		assertThat(block.getRelative(0, 1, 0).getType()).isEqualTo(Material.AIR);
+		assertThat(plugin.getGeneratorStore().find(block)).isEmpty();
+	}
+
+	@Test
+	void placeGeneratorOfUnknownPattern() {
+		// given
+		final Block block = world.getBlockAt(0, 5, 0);
+		block.setType(Material.SPONGE);
+		final ItemStack unknown = new ItemStack(Material.SPONGE);
+		unknown.editPersistentDataContainer(container ->
+				container.set(plugin.getGeneratorKey(), PersistentDataType.STRING, "removed"));
+
+		// when
+		callPlace(block, unknown);
+
+		// then
+		assertThat(block.getRelative(0, 1, 0).getType()).isEqualTo(Material.AIR);
+		assertThat(plugin.getGeneratorStore().find(block)).isEmpty();
+	}
+
+	@Test
+	void placeGeneratorOfChangedBlock() {
+		// given
+		final Block block = world.getBlockAt(0, 5, 0);
+		block.setType(Material.DIRT);
+		final ItemStack outdated = new ItemStack(Material.DIRT);
+		outdated.editPersistentDataContainer(container ->
+				container.set(plugin.getGeneratorKey(), PersistentDataType.STRING, "sponge"));
+
+		// when
+		callPlace(block, outdated);
 
 		// then
 		assertThat(block.getRelative(0, 1, 0).getType()).isEqualTo(Material.AIR);

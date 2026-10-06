@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Changed
+
+- Generator items are recognized by a tag, not by their look. Renaming one in an anvil or changing its name or lore in
+  the config no longer turns it into a regular block. Generator items made by 1.0.0 have no tag and are placed as
+  regular blocks; give them out again with `/bg give`.
+- Names from the config are set as the custom name of the item, not italic.
+
+### Fixed
+
+- Potions and tipped arrows in `items` show the name from the config instead of the name of the potion.
+- Generators that share a generator block each work as the generator their item was made for, not all as the first
+  one.
+
 ## 1.0.0 - 2026-10-05
 
 BlockGens is the successor of atsBlockGenerator 2.4.3. The changes below are relative to it.

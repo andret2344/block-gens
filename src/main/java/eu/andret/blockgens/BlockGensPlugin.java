@@ -10,6 +10,7 @@ import eu.andret.blockgens.config.GeneratorPattern;
 import eu.andret.blockgens.storage.GeneratorStore;
 import eu.andret.blockgens.util.RandomCollection;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -34,6 +35,8 @@ import java.util.Optional;
 public class BlockGensPlugin extends JavaPlugin {
 	@NotNull
 	private final List<GeneratorPattern> patternList = new ArrayList<>();
+	@NotNull
+	private final NamespacedKey generatorKey = new NamespacedKey(this, "generator");
 	@NotNull
 	private final ConfigLoader configLoader = new ConfigLoader(this);
 	@NotNull
@@ -131,6 +134,14 @@ public class BlockGensPlugin extends JavaPlugin {
 	@NotNull
 	public List<GeneratorPattern> getPatternList() {
 		return patternList;
+	}
+
+	/**
+	 * The key of the tag that makes an item a generator, with the name of its pattern as the value.
+	 */
+	@NotNull
+	public NamespacedKey getGeneratorKey() {
+		return generatorKey;
 	}
 
 	@NotNull

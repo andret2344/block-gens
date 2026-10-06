@@ -41,21 +41,25 @@ generators; `command` the Lamp argument types and condition; `util` generic help
   **generator** block (not the generated one), in memory only. The task removes its own entry when it runs, so an
   entry means "re-spawn pending".
 - `ConfigLoader` - parses `config.yml`. `blocks` and `items` define named `ItemStack`s (material, MiniMessage `name`
-  set as the item name - not the custom name, so no italics and no anvil renaming - and MiniMessage `lore`).
+  set as the custom name with italics turned off - potions and tipped arrows ignore the item name - and MiniMessage
+  `lore`).
   `generators` reference them (`blocks.generator`, `blocks.generated`, `drops.<item>` with `weight`/`count`) plus
   `delay`, optional `crafting` and optional `explosion.generator`/`explosion.generated` (`ExplosionMode`). Generator
   and generated must be blocks, the generator must not have gravity. The recipe key is the sanitized generator name.
   It takes the config as a parameter and builds `GeneratorPattern.recipe` but never registers it - registering is the
   plugin's job. Config errors throw `IllegalArgumentException` with the config path in the message and stop the plugin
-  from loading.
+  from loading. Each generator item gets a copy of its block item with the `<plugin namespace>:generator` tag in the
+  item's PDC, value = pattern name (`BlockGensPlugin#getGeneratorKey`), so patterns sharing a block get different
+  items.
 - `GeneratorStore` - placed generators live in the chunk's `PersistentDataContainer`, one entry per generator:
   key `<plugin namespace>:generator/<x>/<y>/<z>`, value = pattern name. The namespace is the plugin name, so renaming
   the plugin orphans every placed generator.
 - `BlockGensListener` - runtime behaviour. A stored entry only counts when the block's material still equals the
   pattern's generator material (`findPattern`); a "generated block" is a block above such a generator with the
   generated material and no pending re-spawn (`findGeneratedPattern`) - during a re-spawn anything in that spot was
-  put there by a player and must break as a regular block. Generator items are matched with `isSimilar`, never
-  `equals` (which compares the amount). Entries are not cleaned up when a generator disappears outside our
+  put there by a player and must break as a regular block. Generator items are recognized only by that tag, never by
+  their look (`isSimilar` breaks on any rename or config change); a tagged item still has to place the pattern's
+  generator material. Entries are not cleaned up when a generator disappears outside our
   events (WorldEdit), so this check is what stops a plain block in that spot from dropping the generator item; placing
   a non-generator block also clears the entry. The spot above a generator is reserved (`isReserved`), whatever is in
   it: placing blocks, emptying buckets, pistons moving blocks or their head into it and `EntityChangeBlockEvent` there
@@ -116,6 +120,7 @@ Python 3 standard library only.
 
 - Tabs for indentation, LF line endings (`.gitattributes`), no wildcard imports, no `var`, `final` on parameters and
   locals, `@NotNull`/`@Nullable` from `org.jetbrains.annotations` on everything.
+- No `clone()` (`UseOfClone` is an error in the inspection profile) - copy an `ItemStack` with `asQuantity`.
 - User-facing changes go under `## Unreleased` in `CHANGELOG.md` (`org.jetbrains.changelog` format); release notes
   are extracted from it.
 - Apache 2.0: the jar's `META-INF` carries `LICENSE`/`NOTICE` renamed with the `-block-gens` suffix so shaded

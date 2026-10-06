@@ -26,6 +26,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -48,22 +49,23 @@ public class BlockGensListener implements Listener {
 		}
 	}
 
-	// MONITOR, so a placement cancelled by any other plugin (e.g. a region protection) never creates a generator
+	// MONITOR, so a placement canceled by any other plugin (e.g. a region protection) never creates a generator
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void place(@NotNull final BlockPlaceEvent event) {
 		final Block placed = event.getBlock();
-		plugin.getPatternList()
-				.stream()
-				// isSimilar, not equals - the amount in hand does not matter
-				.filter(pattern -> pattern.generatorItem().itemStack().isSimilar(event.getItemInHand()))
-				.findFirst()
+		Optional.ofNullable(event.getItemInHand()
+						.getPersistentDataContainer()
+						.get(plugin.getGeneratorKey(), PersistentDataType.STRING))
+				.flatMap(plugin::getPattern)
+				// An item made before its pattern changed the generator block is a regular block now
+				.filter(pattern -> isGenerator(placed, pattern))
 				.ifPresentOrElse(pattern -> {
 					plugin.getGeneratorStore().save(placed, pattern.name());
 					fill(placed, pattern);
 				}, () -> plugin.getGeneratorStore().remove(placed));
 	}
 
-	// HIGH and ignoring cancelled events, so region protections (cancelling at NORMAL or lower) keep players out
+	// HIGH and ignoring canceled events, so region protections (cancelling at NORMAL or lower) keep players out
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void destroyGenerated(@NotNull final BlockBreakEvent event) {
 		final Block brokenBlock = event.getBlock();
@@ -185,7 +187,7 @@ public class BlockGensListener implements Listener {
 		final List<Block> generated = blocks.stream().filter(block -> findGeneratedPattern(block).isPresent()).toList();
 		blocks.removeAll(generators);
 		blocks.removeAll(generated);
-		// Regular blocks above generators are destroyed by the explosion, the generators start afterwards
+		// Regular blocks above generators are destroyed by the explosion, the generators start afterward
 		blocks.forEach(this::fillLater);
 		// The generated blocks go first, as they are found through the generator below them
 		generated.forEach(block -> findGeneratedPattern(block).ifPresent(pattern -> {
@@ -310,7 +312,7 @@ public class BlockGensListener implements Listener {
 		final Block generator = block.getRelative(0, -1, 0);
 		return findPattern(generator)
 				.filter(pattern -> block.getType() == pattern.generatedItem().itemStack().getType())
-				.filter(pattern -> !plugin.isSchedulerPresent(generator));
+				.filter(_ -> !plugin.isSchedulerPresent(generator));
 	}
 
 	@NotNull

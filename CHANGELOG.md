@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.1 - 2026-10-06
+
 ### Changed
 
 - Generator items are recognized by a tag, not by their look. Renaming one in an anvil or changing its name or lore in
